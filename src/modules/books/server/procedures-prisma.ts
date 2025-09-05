@@ -48,20 +48,21 @@ export const booksRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
       z.object({
-        cursor: z.number().default(1),
-        limit: z.number().default(DEFAULT_LIMIT),
-        search: z.string().nullable().optional(),
-        category: z.string().nullable().optional(),
-        minPrice: z.string().nullable().optional(),
-        maxPrice: z.string().nullable().optional(),
-        tags: z.array(z.string()).nullable().optional(),
-        sort: z.enum(["newest", "price-low", "price-high", "rating", "popular"]).nullable().optional(),
-        tenantSlug: z.string().nullable().optional(),
+        cursor: z.number().nullish().default(1),
+        limit: z.number().min(1).max(100).nullish().default(DEFAULT_LIMIT),
+        search: z.string().nullish(),
+        category: z.string().nullish(),
+        minPrice: z.string().nullish(),
+        maxPrice: z.string().nullish(),
+        tags: z.array(z.string()).nullish(),
+        sort: z.enum(["newest", "price-low", "price-high", "rating", "popular"]).nullish(),
+        tenantSlug: z.string().nullish(),
       })
     )
     .query(async ({ input }) => {
-      const { cursor, limit, search, category, minPrice, maxPrice, tenantSlug, sort } = input;
-      const skip = (cursor - 1) * limit;
+      const { cursor = 1, limit = DEFAULT_LIMIT, search, category, minPrice, maxPrice, tenantSlug, sort } = input;
+      const page = cursor || 1;
+      const skip = (page - 1) * limit;
 
       // Build where clause
       const where: any = {
@@ -113,7 +114,7 @@ export const booksRouter = createTRPCRouter({
       ]);
 
       const hasNextPage = skip + items.length < totalCount;
-      const nextCursor = hasNextPage ? cursor + 1 : null;
+      const nextCursor = hasNextPage ? page + 1 : null;
 
       // Format for compatibility
       const docs = items.map(item => ({
@@ -139,11 +140,11 @@ export const booksRouter = createTRPCRouter({
         totalDocs: totalCount,
         limit,
         totalPages: Math.ceil(totalCount / limit),
-        page: cursor,
+        page: page,
         pagingCounter: skip + 1,
-        hasPrevPage: cursor > 1,
+        hasPrevPage: page > 1,
         hasNextPage,
-        prevPage: cursor > 1 ? cursor - 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
         nextPage: nextCursor,
       };
     }),
