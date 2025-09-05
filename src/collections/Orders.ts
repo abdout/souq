@@ -28,7 +28,7 @@ export const Orders: CollectionConfig = {
     {
       name: "item",
       type: "relationship",
-      relationTo: "items",
+      relationTo: "books",
       required: true,
       hasMany: false,
     },
