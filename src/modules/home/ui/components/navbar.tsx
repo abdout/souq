@@ -1,12 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Poppins } from "next/font/google";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NavbarSidebar } from "./navbar-sidebar";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { useTRPC } from "@/trpc/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -51,6 +52,7 @@ export const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -73,21 +75,40 @@ export const Navbar = () => {
     logout();
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
+
   return (
     <nav className="h-14 flex border-b justify-between font-medium bg-black">
-      <Link href="/" className="pl-6 flex items-center gap-3">
-        <Image
-          src="/logo.png"
-          alt="Souq Logo"
-          width={16}
-          height={16}
-          className="filter brightness-0 saturate-100"
-          style={{ filter: 'brightness(0) saturate(100%) invert(67%) sepia(95%) saturate(1234%) hue-rotate(75deg) brightness(95%) contrast(89%)' }}
-        />
-        <span className={cn("text-lg font-semibold text-white", poppins.className)}>
-          Souq
-        </span>
-      </Link>
+      <div className="flex items-center gap-4">
+        <Link href="/" className="pl-6 flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="Souq Logo"
+            width={20}
+            height={20}
+            className="filter brightness-0 saturate-100"
+            style={{ filter: 'brightness(0) saturate(100%) invert(67%) sepia(95%) saturate(1234%) hue-rotate(75deg) brightness(95%) contrast(89%)' }}
+          />
+          <span className={cn("text-xl font-bold text-white", poppins.className)}>
+            Souq
+          </span>
+        </Link>
+        <form onSubmit={handleSearch} className="relative hidden md:flex">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search products..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            className="pl-10 pr-4 h-10 w-64 lg:w-96 bg-gray-900 border-gray-700 text-white placeholder:text-gray-400 focus:bg-gray-800 focus:border-[#6bc935] rounded-lg"
+          />
+        </form>
+      </div>
       <NavbarSidebar
         items={navbarItems}
         open={isSidebarOpen}
@@ -137,8 +158,7 @@ export const Navbar = () => {
           </Button>
           <Button
             asChild
-            className="  rounded-md bg-[#87E64B]
-                  hover:bg-[#87E64B]/20 transition-colors text-lg"
+            className="h-10 my-2 rounded-md bg-primary hover:bg-primary/90 transition-colors text-lg px-6 text-primary-foreground"
           >
             <Link prefetch href="/sign-up">
               Start selling
@@ -149,10 +169,10 @@ export const Navbar = () => {
       <div className="flex xl:hidden items-center justify-center">
         <Button
           variant="ghost"
-          className="size-12 border-transparent bg-black text-white hover:bg-gray-800"
+          className="size-14 border-transparent bg-black text-white hover:bg-neutral-900"
           onClick={() => setIsSidebarOpen(true)}
         >
-          <MenuIcon />
+          <MenuIcon className="size-6" />
         </Button>
       </div>
     </nav>
