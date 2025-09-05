@@ -1,6 +1,10 @@
-# Lexi - Multi-Tenant E-Commerce Platform
+# Souq - Hyperlocal Delivery Platform
 
-A comprehensive multi-tenant e-commerce platform where creators can set up their own storefronts, sell digital products, and get paid through Stripe Connect. Built with Next.js 15, Payload CMS, and modern web technologies.
+A multi-tenant delivery platform for restaurants, pharmacies, and grocery stores in Saudi Arabia, built with Next.js 15, Prisma, and PostgreSQL.
+
+> **🚀 Status**: Phase 2 in progress - Ready for production deployment and client demonstration.
+> 
+> **📋 Progress**: Database migrated to Prisma + PostgreSQL, core business logic implemented, ready for Vercel deployment.
 
 ## 🏗️ Multi-Tenant Architecture
 
@@ -120,18 +124,18 @@ This **"shared database, shared schema"** model is the most efficient approach f
 
 ## 🚀 Key Features
 
-### 🏬 **Multi-Tenant Architecture**
+### Phase 1: Foundation ✅
+- **Multi-tenant architecture** - Support for multiple merchants
+- **Business types** - Restaurants, pharmacies, and grocery stores  
+- **Product management** - Inventory tracking and categorization
+- **Order management** - Complete delivery workflow
+- **User authentication** - Customer and merchant accounts
 
-- **Vendor Subdomains**: Each creator gets their own subdomain (e.g., `creator.yourdomain.com`)
-- **Custom Storefronts**: Personalized merchant pages with custom branding
-- **Isolated Product Catalogs**: Each tenant manages their own products independently
-
-### 💳 **Payment & Commerce**
-
-- **Stripe Connect Integration**: Seamless payment processing for multiple vendors
-- **Automatic Platform Fees**: Configurable commission system
-- **Secure Checkout**: PCI-compliant payment handling
-- **Digital Product Delivery**: Automated file delivery after purchase
+### Phase 2: Business Logic 🚧
+- **Merchant onboarding** - Stripe Connect integration with business-specific MCC codes
+- **Inventory management** - Real-time stock tracking with low-stock alerts
+- **Order processing** - Distance-based delivery fees with geographic validation
+- **Delivery management** - Haversine distance calculations and time estimation
 
 ### 📚 **Content Management**
 
@@ -156,15 +160,12 @@ This **"shared database, shared schema"** model is the most efficient approach f
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15 (App Router)
-- **Styling**: TailwindCSS V4 + ShadcnUI Components
-- **Backend**: Payload CMS
-- **Database**: MongoDB (configurable)
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Backend**: tRPC, Prisma ORM
+- **Database**: PostgreSQL (Neon)
 - **Payments**: Stripe Connect
-- **Type Safety**: TypeScript
-- **State Management**: Zustand
-- **API Layer**: tRPC
-- **Deployment**: Vercel (recommended)
+- **Storage**: Vercel Blob
+- **Deployment**: Vercel
 
 ## 📁 Project Structure
 
@@ -210,51 +211,56 @@ lexi/
 ### Prerequisites
 
 - Node.js 18+
-- Bun (recommended for faster installs and builds) or npm/yarn/pnpm
-- MongoDB database
+- pnpm (recommended package manager)
+- PostgreSQL database (Neon recommended)
 - Stripe account (for payments)
 
 ### 1. Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd lexi
+git clone https://github.com/abdout/souq.git
+cd souq
 
-# Install dependencies (Bun recommended)
-bun install
-
-# Alternative package managers
-# npm install
-# yarn install
-# pnpm install
+# Install dependencies
+pnpm install
 ```
 
 ### 2. Environment Setup
 
-Create a `.env.local` file in the root directory:
+Create a `.env` file in the root directory:
 
 ```env
 # Database
-DATABASE_URI=mongodb://localhost:27017/lexi
-
-# Payload CMS
-PAYLOAD_SECRET=your-payload-secret-key
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require"
 
 # Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 
 # App Configuration
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_ROOT_DOMAIN=localhost:3000
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_ROOT_DOMAIN="localhost:3000"
 NEXT_PUBLIC_ENABLE_SUBDOMAIN_ROUTING=false
 
 # File Storage (Vercel Blob)
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_..."
 
 # Development
 NODE_ENV=development
+```
+
+### 3. Database Setup
+
+```bash
+# Generate Prisma client
+pnpm prisma generate
+
+# Run database migrations
+pnpm prisma migrate dev
+
+# Start development server
+pnpm dev
 ```
 
 ### 3. Environment Variables Explained

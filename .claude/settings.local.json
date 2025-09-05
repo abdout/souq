@@ -6,7 +6,10 @@
       "Bash(pnpm run:*)",
       "Bash(pnpm list:*)",
       "Bash(pnpm update:*)",
-      "Bash(pnpm prisma:*)"
+      "Bash(pnpm prisma:*)",
+      "Bash(vercel blob create:*)",
+      "Bash(pnpm dlx vercel blob create:*)",
+      "Bash(pnpm dlx:*)"
     ],
     "deny": [],
     "ask": []
