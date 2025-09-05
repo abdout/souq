@@ -55,7 +55,7 @@ export const itemsRouter = createTRPCRouter({
         minPrice: z.string().nullish(),
         maxPrice: z.string().nullish(),
         tags: z.array(z.string()).nullish(),
-        sort: z.enum(["newest", "price-low", "price-high", "rating", "popular"]).nullish(),
+        sort: z.enum(["newest", "price-low", "price-high", "rating", "popular", "curated", "trending", "hot_and_new"]).nullish(),
         tenantSlug: z.string().nullish(),
       })
     )
@@ -94,6 +94,12 @@ export const itemsRouter = createTRPCRouter({
       let orderBy: any = { createdAt: 'desc' };
       if (sort === 'price-low') orderBy = { price: 'asc' };
       if (sort === 'price-high') orderBy = { price: 'desc' };
+      if (sort === 'newest') orderBy = { createdAt: 'desc' };
+      if (sort === 'popular') orderBy = { createdAt: 'desc' }; // TODO: Implement popularity sorting
+      if (sort === 'rating') orderBy = { createdAt: 'desc' }; // TODO: Implement rating sorting
+      if (sort === 'curated') orderBy = { createdAt: 'desc' }; // Default for curated
+      if (sort === 'trending') orderBy = { createdAt: 'desc' }; // TODO: Implement trending logic
+      if (sort === 'hot_and_new') orderBy = { createdAt: 'desc' }; // TODO: Implement hot & new logic
 
       // Get items
       const [items, totalCount] = await Promise.all([
