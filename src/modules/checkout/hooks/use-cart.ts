@@ -62,7 +62,7 @@ export const useCart = (tenantSlug: string) => {
     (address: typeof cart.deliveryAddress) => {
       setDeliveryAddress(tenantSlug, address);
     },
-    [setDeliveryAddress, tenantSlug]
+    [setDeliveryAddress, tenantSlug, cart]
   );
 
   const handleSetOrderType = useCallback(

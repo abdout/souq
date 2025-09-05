@@ -48,7 +48,7 @@ export const tenantsRouter = createTRPCRouter({
       const { userLocation, businessType, maxDistance, limit, currentlyDelivering } = input;
       
       // Build where clause
-      const where: any = {
+      const where: Record<string, any> = {
         isActive: true,
       };
 
@@ -58,12 +58,6 @@ export const tenantsRouter = createTRPCRouter({
 
       // If filtering by currently delivering, check operating hours
       if (currentlyDelivering) {
-        const now = new Date();
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
-        const currentTime = currentHour * 100 + currentMinute; // HHMM format
-        const currentDay = now.toLocaleDateString('en', { weekday: 'lowercase' });
-        
         // Note: This is a simplified check. In production, you'd want more sophisticated time handling
         where.operatingHours = {
           not: null
@@ -142,7 +136,7 @@ export const tenantsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { businessType, limit, offset, userLocation, onlyCurrentlyDelivering } = input;
 
-      const where: any = {
+      const where: Record<string, any> = {
         businessType,
         isActive: true,
       };
@@ -229,7 +223,7 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-function checkIfCurrentlyOpen(operatingHours: any): boolean {
+function checkIfCurrentlyOpen(operatingHours: Record<string, any>): boolean {
   if (!operatingHours) return true;
   
   const now = new Date();

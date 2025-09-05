@@ -3,13 +3,16 @@
     "allow": [
       "Bash(pnpm dev:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm run:*)",
+      "Bash(pnpm build:*)",
       "Bash(pnpm list:*)",
       "Bash(pnpm update:*)",
       "Bash(pnpm prisma:*)",
       "Bash(vercel blob create:*)",
       "Bash(pnpm dlx vercel blob create:*)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

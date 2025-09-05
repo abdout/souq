@@ -116,7 +116,7 @@ export const itemsRouter = createTRPCRouter({
       } = input;
 
       // Build where clause
-      const where: any = {
+      const where: Record<string, any> = {
         isActive: true,
         tenant: {
           isActive: true,
@@ -162,7 +162,7 @@ export const itemsRouter = createTRPCRouter({
       }
 
       // Build orderBy clause
-      let orderBy: any = { createdAt: 'desc' }; // default: newest
+      let orderBy: Record<string, any> = { createdAt: 'desc' }; // default: newest
       
       switch (sort) {
         case 'price-low':

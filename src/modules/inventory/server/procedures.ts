@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { baseProcedure, createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { isSuperAdmin } from "@/lib/access";
 import { Tenant } from "@/payload-types";
@@ -192,7 +192,7 @@ export const inventoryRouter = createTRPCRouter({
             continue;
           }
 
-          const updatedItem = await ctx.db.update({
+          await ctx.db.update({
             collection: "items",
             id: update.itemId,
             data: {
