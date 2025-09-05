@@ -1,8 +1,7 @@
 import { authRouter } from "@/modules/auth/server/procedures-prisma";
 import { createTRPCRouter } from "../init";
 import { categoriesRouter } from "@/modules/categories/server/procedures";
-import { booksRouter } from "@/modules/books/server/procedures-prisma";
-import { itemsRouter } from "@/modules/items/server/procedures";
+import { itemsRouter } from "@/modules/items/server/procedures-prisma";
 import { tagsRouter } from "@/modules/tags/server/procedures";
 import { tenantsRouter } from "@/modules/tenants/server/procedures";
 import { checkoutRouter } from "@/modules/checkout/server/procedures";
@@ -18,7 +17,6 @@ export const appRouter = createTRPCRouter({
   tenants: tenantsRouter,
   library: libraryRouter,
   checkout: checkoutRouter,
-  books: booksRouter,
   items: itemsRouter, // New Prisma-based items router
   categories: categoriesRouter,
   reviews: reviewsRouter,

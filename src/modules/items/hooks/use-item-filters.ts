@@ -31,6 +31,6 @@ const params = {
     .withDefault([]),
 };
 
-export const useBookFilters = () => {
+export const useItemFilters = () => {
   return useQueryStates(params);
 };

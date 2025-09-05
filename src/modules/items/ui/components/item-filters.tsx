@@ -3,17 +3,17 @@
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
-import { useBookFilters } from "../../hooks/use-book-filters";
+import { useItemFilters } from "../../hooks/use-item-filters";
 import { PriceFilter } from "./price-filter";
 import { TagsFilter } from "./tags-filter";
 
-interface BookFilterProps {
+interface ItemFilterProps {
   title: string;
   className?: string;
   children: React.ReactNode;
 }
 
-const BookFilter = ({ title, className, children }: BookFilterProps) => {
+const ItemFilter = ({ title, className, children }: ItemFilterProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const Icon = isOpen ? ChevronDownIcon : ChevronRightIcon;
@@ -32,8 +32,8 @@ const BookFilter = ({ title, className, children }: BookFilterProps) => {
   );
 };
 
-export const BookFilters = () => {
-  const [filters, setFilters] = useBookFilters();
+export const ItemFilters = () => {
+  const [filters, setFilters] = useItemFilters();
   const hasAnyFilters = Object.entries(filters).some(([key, value]) => {
     if (key === "sort") return false;
     if (typeof value === "string") {
@@ -69,20 +69,20 @@ export const BookFilters = () => {
           </button>
         )}
       </div>
-      <BookFilter title="Price">
+      <ItemFilter title="Price">
         <PriceFilter
           minPrice={filters.minPrice}
           maxPrice={filters.maxPrice}
           onMinPriceChange={(value: string) => onChange("minPrice", value)}
           onMaxPriceChange={(value: string) => onChange("maxPrice", value)}
         />
-      </BookFilter>
-      <BookFilter title="Tags" className="border-b-0">
+      </ItemFilter>
+      <ItemFilter title="Tags" className="border-b-0">
         <TagsFilter
           value={filters.tags}
           onChange={(value) => onChange("tags", value)}
         />
-      </BookFilter>
+      </ItemFilter>
     </div>
   );
 };

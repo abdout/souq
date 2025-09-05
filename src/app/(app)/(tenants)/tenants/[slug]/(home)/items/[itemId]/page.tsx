@@ -1,16 +1,16 @@
-import { BookView, BookViewSkeleton } from "@/modules/books/ui/views/book-view";
+import { ItemView, ItemViewSkeleton } from "@/modules/items/ui/views/item-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 
 interface Props {
-  params: Promise<{ bookId: string; slug: string }>;
+  params: Promise<{ itemId: string; slug: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 const Page = async ({ params }: Props) => {
-  const { bookId, slug } = await params;
+  const { itemId, slug } = await params;
 
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(
@@ -21,8 +21,8 @@ const Page = async ({ params }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<BookViewSkeleton />}>
-        <BookView bookId={bookId} tenantSlug={slug} />
+      <Suspense fallback={<ItemViewSkeleton />}>
+        <ItemView itemId={itemId} tenantSlug={slug} />
       </Suspense>
     </HydrationBoundary>
   );

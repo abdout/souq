@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import z from "zod";
 import { DEFAULT_LIMIT } from "@/constants";
 
-export const booksRouter = createTRPCRouter({
+export const itemsRouter = createTRPCRouter({
   getOne: baseProcedure
     .input(
       z.object({

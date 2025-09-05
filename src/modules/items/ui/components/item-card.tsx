@@ -4,7 +4,7 @@ import { StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
 
-interface BookCardProps {
+interface ItemCardProps {
   id: string;
   name: string;
   imageUrl?: string | null;
@@ -15,7 +15,7 @@ interface BookCardProps {
   price: number;
 }
 
-export const BookCard = ({
+export const ItemCard = ({
   id,
   name,
   imageUrl,
@@ -24,7 +24,7 @@ export const BookCard = ({
   reviewRating,
   reviewCount,
   price,
-}: BookCardProps) => {
+}: ItemCardProps) => {
   const router = useRouter();
 
   const handleUserClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -35,7 +35,7 @@ export const BookCard = ({
   };
 
   return (
-    <Link href={`${generateTenantURL(tenantSlug)}/books/${id}`}>
+    <Link href={`${generateTenantURL(tenantSlug)}/items/${id}`}>
       <div className="hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow border rounded-md bg-white overflow-hidden h-full flex flex-col">
         <div className="relative aspect-square">
           <Image
@@ -78,7 +78,7 @@ export const BookCard = ({
   );
 };
 
-export const BookCardSkeleton = () => {
+export const ItemCardSkeleton = () => {
   return (
     <div className="w-full aspect-3/4 bg-neutral-200 rounded-lg animate-pulse" />
   );

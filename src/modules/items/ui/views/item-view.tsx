@@ -28,15 +28,15 @@ const CartButton = dynamic(
   }
 );
 
-interface BookViewProps {
-  bookId: string;
+interface ItemViewProps {
+  itemId: string;
   tenantSlug: string;
 }
 
-export const BookView = ({ bookId, tenantSlug }: BookViewProps) => {
+export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
-    trpc.books.getOne.queryOptions({ id: bookId })
+    trpc.items.getOne.queryOptions({ id: itemId })
   );
 
   const [isCopied, setIsCopied] = useState(false);
@@ -180,7 +180,7 @@ export const BookView = ({ bookId, tenantSlug }: BookViewProps) => {
     </div>
   );
 };
-export const BookViewSkeleton = () => {
+export const ItemViewSkeleton = () => {
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden">

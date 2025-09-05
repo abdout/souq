@@ -6,19 +6,19 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { DEFAULT_LIMIT } from "@/constants";
 import { getQueryClient, trpc } from "@/trpc/server";
 
-import { loadBookFilters } from "@/modules/books/search-params";
-import { BookListView } from "@/modules/books/ui/views/book-list-view";
+import { loadItemFilters } from "@/modules/items/search-params";
+import { ItemListView } from "@/modules/items/ui/views/item-list-view";
 
 interface Props {
   searchParams: Promise<SearchParams>;
 }
 
 const Page = async ({ searchParams }: Props) => {
-  const filters = await loadBookFilters(searchParams);
+  const filters = await loadItemFilters(searchParams);
 
   const queryClient = getQueryClient();
   void queryClient.prefetchInfiniteQuery(
-    trpc.books.getMany.infiniteQueryOptions({
+    trpc.items.getMany.infiniteQueryOptions({
       ...filters,
       limit: DEFAULT_LIMIT,
     })
@@ -26,7 +26,7 @@ const Page = async ({ searchParams }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <BookListView />
+      <ItemListView />
     </HydrationBoundary>
   );
 };

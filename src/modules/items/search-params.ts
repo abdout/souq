@@ -31,4 +31,4 @@ export const params = {
     .withDefault([]),
 };
 
-export const loadBookFilters = createLoader(params);
+export const loadItemFilters = createLoader(params);

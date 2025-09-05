@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useBookFilters } from "../../hooks/use-book-filters";
+import { useItemFilters } from "../../hooks/use-item-filters";
 import { cn } from "@/lib/utils";
 
-export const BookSort = () => {
-  const [filters, setFilters] = useBookFilters();
+export const ItemSort = () => {
+  const [filters, setFilters] = useItemFilters();
 
   return (
     <div className="flex items-center gap-2">

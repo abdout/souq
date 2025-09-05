@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { InboxIcon } from "lucide-react";
-import { useBookFilters } from "../../hooks/use-book-filters";
-import { BookCard, BookCardSkeleton } from "./book-card";
+import { useItemFilters } from "../../hooks/use-item-filters";
+import { ItemCard, ItemCardSkeleton } from "./item-card";
 
 interface Props {
   category?: string;
@@ -15,12 +15,12 @@ interface Props {
   narrowView?: boolean;
 }
 
-export const BookList = ({ category, tenantSlug, narrowView }: Props) => {
-  const [filters] = useBookFilters();
+export const ItemList = ({ category, tenantSlug, narrowView }: Props) => {
+  const [filters] = useItemFilters();
   const trpc = useTRPC();
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(
-      trpc.books.getMany.infiniteQueryOptions(
+      trpc.items.getMany.infiniteQueryOptions(
         {
           ...filters,
           category,
@@ -39,7 +39,7 @@ export const BookList = ({ category, tenantSlug, narrowView }: Props) => {
     return (
       <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
         <InboxIcon />
-        <p className="text-base font-medium">No books found</p>
+        <p className="text-base font-medium">No items found</p>
       </div>
     );
   }
@@ -54,17 +54,17 @@ export const BookList = ({ category, tenantSlug, narrowView }: Props) => {
       >
         {data?.pages
           .flatMap((page) => page.docs)
-          .map((book) => (
-            <BookCard
-              key={book.id}
-              id={book.id}
-              name={book.name}
-              imageUrl={book.image?.url}
-              tenantSlug={book.tenant?.slug}
-              tenantImageUrl={book.tenant?.image?.url}
-              reviewRating={book.reviewRating}
-              reviewCount={book.reviewCount}
-              price={book.price}
+          .map((item) => (
+            <ItemCard
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              imageUrl={item.image?.url}
+              tenantSlug={item.tenant?.slug}
+              tenantImageUrl={item.tenant?.image?.url}
+              reviewRating={item.reviewRating}
+              reviewCount={item.reviewCount}
+              price={item.price}
             />
           ))}
       </div>
@@ -84,7 +84,7 @@ export const BookList = ({ category, tenantSlug, narrowView }: Props) => {
   );
 };
 
-export const BookListSkeleton = ({ narrowView }: Props) => {
+export const ItemListSkeleton = ({ narrowView }: Props) => {
   return (
     <div
       className={cn(
@@ -93,7 +93,7 @@ export const BookListSkeleton = ({ narrowView }: Props) => {
       )}
     >
       {Array.from({ length: DEFAULT_LIMIT }).map((_, index) => (
-        <BookCardSkeleton key={index} />
+        <ItemCardSkeleton key={index} />
       ))}
     </div>
   );

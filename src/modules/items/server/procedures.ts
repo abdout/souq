@@ -1,380 +1,277 @@
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, baseProcedure } from "@/trpc/init";
+import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import z from "zod";
+import type { Where, Sort } from "payload";
+import { Category, Media, Tenant } from "@/payload-types";
+import { sortValues } from "../search-params";
+import { DEFAULT_LIMIT } from "@/constants";
+import { headers as getHeaders } from "next/headers";
 import { TRPCError } from "@trpc/server";
-import { prisma } from "@/lib/db";
 
-export const itemsRouter = createTRPCRouter({
-  // Get single item with stock status and availability
+export const booksRouter = createTRPCRouter({
   getOne: baseProcedure
     .input(
       z.object({
         id: z.string(),
-        tenantSlug: z.string().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const item = await prisma.item.findUnique({
-        where: { id: input.id },
-        include: {
-          tenant: true,
-          category: true,
-          reviews: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  image: true,
+    .query(async ({ ctx, input }) => {
+      const headers = await getHeaders();
+      const session = await ctx.db.auth({ headers });
+
+      const book = await ctx.db.findByID({
+        collection: "items",
+        id: input.id,
+        depth: 2, // Load book.image, book.tenant and book.tenant.image
+        select: {
+          content: false,
+        },
+      });
+
+      if (book.isArchived) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Book not found",
+        });
+      }
+
+      let isPurchased = false;
+
+      if (session.user) {
+        const ordersData = await ctx.db.find({
+          collection: "orders",
+          pagination: false,
+          limit: 1,
+          where: {
+            and: [
+              {
+                book: {
+                  equals: input.id,
                 },
               },
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
+              {
+                user: {
+                  equals: session.user.id,
+                },
+              },
+            ],
+          },
+        });
+        isPurchased = !!ordersData.docs[0];
+      }
+
+      const reviews = await ctx.db.find({
+        collection: "reviews",
+        pagination: false,
+        where: {
+          book: {
+            equals: input.id,
           },
         },
       });
 
-      if (!item || !item.isActive) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Item not found or unavailable",
+      const reviewRating =
+        reviews.docs.length > 0
+          ? Math.round(
+              (reviews.docs.reduce((acc, review) => acc + review.rating, 0) /
+                reviews.totalDocs) *
+                10
+            ) / 10
+          : 0;
+
+      const ratingDistribution: Record<number, number> = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      };
+
+      if (reviews.totalDocs > 0) {
+        reviews.docs.forEach((review) => {
+          const rating = review.rating;
+
+          if (rating >= 1 && rating <= 5) {
+            ratingDistribution[rating] = (ratingDistribution[rating] || 0) + 1;
+          }
+        });
+
+        Object.keys(ratingDistribution).forEach((key) => {
+          const rating = Number(key);
+          const count = ratingDistribution[rating] || 0;
+          ratingDistribution[rating] = Math.round(
+            (count / reviews.totalDocs) * 100
+          );
         });
       }
-
-      // Check if tenant is active
-      if (!item.tenant.isActive) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Merchant is currently not accepting orders",
-        });
-      }
-
-      // Calculate stock status
-      const isOutOfStock = item.trackInventory && item.inventory <= 0;
-      const isLowStock = item.trackInventory && item.inventory <= item.lowStockThreshold && item.inventory > 0;
-
-      // Calculate review stats
-      const reviewCount = item.reviews.length;
-      const averageRating = reviewCount > 0 
-        ? item.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
-        : 0;
 
       return {
-        ...item,
-        stockStatus: {
-          isOutOfStock,
-          isLowStock,
-          inventory: item.trackInventory ? item.inventory : null,
-          lowStockThreshold: item.lowStockThreshold,
-        },
-        reviewStats: {
-          count: reviewCount,
-          averageRating: Math.round(averageRating * 10) / 10,
-        },
-        reviews: item.reviews.map(review => ({
-          ...review,
-          user: review.user,
-        })),
+        ...book,
+        isPurchased,
+        image: book.image as Media | null,
+        tenant: book.tenant as Tenant & { image: Media | null },
+        reviewRating,
+        reviewCount: reviews.totalDocs,
+        ratingDistribution,
       };
     }),
-
-  // Get many items with filtering and stock status
   getMany: baseProcedure
     .input(
       z.object({
         cursor: z.number().default(1),
-        limit: z.number().default(12),
-        search: z.string().optional(),
-        categorySlug: z.string().optional(),
-        businessType: z.enum(["food", "medicine", "grocery"]).optional(),
-        tenantSlug: z.string().optional(),
-        minPrice: z.number().optional(),
-        maxPrice: z.number().optional(),
-        sort: z.enum(["newest", "price-low", "price-high", "rating", "popular", "distance"]).default("newest"),
-        includeOutOfStock: z.boolean().default(true), // For merchant views
-        onlyInStock: z.boolean().default(false), // For customer views
-        currentlyDelivering: z.boolean().default(false), // Show only merchants accepting orders now
-        userLocation: z.object({
-          lat: z.number(),
-          lng: z.number(),
-        }).optional(), // For distance-based sorting and filtering
+        limit: z.number().default(DEFAULT_LIMIT),
+        search: z.string().nullable().optional(),
+        category: z.string().nullable().optional(),
+        minPrice: z.string().nullable().optional(),
+        maxPrice: z.string().nullable().optional(),
+        tags: z.array(z.string()).nullable().optional(),
+        sort: z.enum(sortValues).nullable().optional(),
+        tenantSlug: z.string().nullable().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const {
-        cursor,
-        limit,
-        search,
-        categorySlug,
-        businessType,
-        tenantSlug,
-        minPrice,
-        maxPrice,
-        sort,
-        includeOutOfStock,
-        onlyInStock,
-      } = input;
-
-      // Build where clause
-      const where: Record<string, any> = {
-        isActive: true,
-        tenant: {
-          isActive: true,
+    .query(async ({ ctx, input }) => {
+      const where: Where = {
+        isArchived: {
+          not_equals: true,
         },
       };
 
-      // Stock filtering
-      if (onlyInStock && !includeOutOfStock) {
-        where.OR = [
-          { trackInventory: false }, // Items not tracked are always available
-          { 
-            AND: [
-              { trackInventory: true },
-              { inventory: { gt: 0 } }
-            ]
-          }
-        ];
-      }
-
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ];
-      }
-
-      if (categorySlug) {
-        where.category = { slug: categorySlug };
-      }
-
-      if (businessType) {
-        where.businessType = businessType;
-      }
-
-      if (tenantSlug) {
-        where.tenant = { slug: tenantSlug };
-      }
-
-      if (minPrice !== undefined || maxPrice !== undefined) {
-        where.price = {};
-        if (minPrice !== undefined) where.price.gte = minPrice;
-        if (maxPrice !== undefined) where.price.lte = maxPrice;
-      }
-
-      // Build orderBy clause
-      let orderBy: Record<string, any> = { createdAt: 'desc' }; // default: newest
-      
-      switch (sort) {
-        case 'price-low':
-          orderBy = { price: 'asc' };
-          break;
-        case 'price-high':
-          orderBy = { price: 'desc' };
-          break;
-        case 'rating':
-          // We'll handle this after the query since we need to calculate averages
-          orderBy = { createdAt: 'desc' };
-          break;
-        case 'popular':
-          // Based on number of reviews for now
-          orderBy = { createdAt: 'desc' };
-          break;
-      }
-
-      // Calculate pagination
-      const skip = (cursor - 1) * limit;
-
-      const [items, totalCount] = await Promise.all([
-        prisma.item.findMany({
-          where,
-          include: {
-            tenant: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                businessType: true,
-                isActive: true,
-                image: true,
-              },
-            },
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-            _count: {
-              select: {
-                reviews: true,
-                orderItems: true,
-              },
-            },
-          },
-          orderBy,
-          skip,
-          take: limit,
-        }),
-        prisma.item.count({ where }),
-      ]);
-
-      // Process items to add stock status and review stats
-      const processedItems = items.map(item => {
-        const isOutOfStock = item.trackInventory && item.inventory <= 0;
-        const isLowStock = item.trackInventory && item.inventory <= item.lowStockThreshold && item.inventory > 0;
-        
-        const reviewCount = item._count.reviews;
-        const averageRating = reviewCount > 0 
-          ? item.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
-          : 0;
-
-        return {
-          ...item,
-          stockStatus: {
-            isOutOfStock,
-            isLowStock,
-            inventory: item.trackInventory ? item.inventory : null,
-          },
-          reviewStats: {
-            count: reviewCount,
-            averageRating: Math.round(averageRating * 10) / 10,
-          },
-          orderCount: item._count.orderItems,
-          reviews: undefined, // Remove full reviews from list view
-          _count: undefined, // Clean up the count object
+      if (input.minPrice && input.maxPrice) {
+        where.price = {
+          greater_than_equal: input.minPrice,
+          less_than_equal: input.maxPrice,
         };
-      });
+      } else if (input.minPrice) {
+        where.price = {
+          greater_than_equal: input.minPrice,
+        };
+      } else if (input.maxPrice) {
+        where.price = {
+          ...where.price,
+          less_than_equal: input.maxPrice,
+        };
+      }
 
-      // Sort by rating if requested (now that we have calculated ratings)
-      const finalItems = sort === 'rating' 
-        ? processedItems.sort((a, b) => b.reviewStats.averageRating - a.reviewStats.averageRating)
-        : sort === 'popular'
-        ? processedItems.sort((a, b) => b.orderCount - a.orderCount)
-        : processedItems;
+      if (input.tenantSlug) {
+        where["tenant.slug"] = {
+          equals: input.tenantSlug,
+        };
+      } else {
+        // If we are loading books for public storefront (no tenantSlug)
+        // Make sure to not load products set to "isPrivate: true" (using reverse not_equals logic)
+        // There products are exclusively private to the tenant store
+        where["isPrivate"] = {
+          not_equals: true,
+        };
+      }
 
-      const hasNextPage = skip + limit < totalCount;
-      const hasPrevPage = cursor > 1;
-
-      return {
-        items: finalItems,
-        pagination: {
-          currentPage: cursor,
-          totalPages: Math.ceil(totalCount / limit),
-          totalCount,
-          hasNextPage,
-          hasPrevPage,
-          limit,
-        },
-      };
-    }),
-
-  // Update item stock (merchant only)
-  updateStock: protectedProcedure
-    .input(
-      z.object({
-        itemId: z.string(),
-        inventory: z.number().min(0),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Check if user owns this item's tenant
-      const item = await prisma.item.findUnique({
-        where: { id: input.itemId },
-        include: {
-          tenant: {
-            include: {
-              users: {
-                where: {
-                  userId: ctx.session.user.id,
-                },
-              },
+      if (input.category) {
+        const categoriesData = await ctx.db.find({
+          collection: "categories",
+          limit: 1,
+          depth: 1, // Populate subcategories, subcategories[0] will be a type of "Category"
+          pagination: false,
+          where: {
+            slug: {
+              equals: input.category,
             },
           },
+        });
+
+        console.log(JSON.stringify(categoriesData), null, 2);
+        const formattedData = categoriesData.docs.map((doc) => ({
+          ...doc,
+          subcategories: (doc.subcategories?.docs ?? []).map((doc) => ({
+            // Because of "depth: 1" we are confident "doc" will be a type of "Category"
+            ...(doc as Category),
+            subcategories: undefined,
+          })),
+        }));
+
+        const subcategoriesSlugs = [];
+        const parentCategory = formattedData[0];
+
+        if (parentCategory) {
+          subcategoriesSlugs.push(
+            ...parentCategory.subcategories.map(
+              (subcategory) => subcategory.slug
+            )
+          );
+          where["category.slug"] = {
+            in: [parentCategory.slug, ...subcategoriesSlugs],
+          };
+        }
+      }
+
+      if (input.tags && input.tags.length > 0) {
+        where["tags.name"] = {
+          in: input.tags,
+        };
+      }
+
+      if (input.search) {
+        where["name"] = {
+          like: input.search,
+        };
+      }
+
+      let sort: Sort = "-createdAt";
+      if (input.sort === "curated") {
+        sort = "-createdAt";
+      } else if (input.sort === "hot_and_new") {
+        sort = "-createdAt";
+      } else if (input.sort === "trending") {
+        sort = "+createdAt";
+      }
+
+      const data = await ctx.db.find({
+        collection: "items",
+        depth: 2, // Populate "category", "image", "tenant"
+        where,
+        sort,
+        page: input.cursor,
+        limit: input.limit,
+        select: {
+          content: false,
         },
       });
 
-      if (!item) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Item not found",
-        });
-      }
-
-      if (item.tenant.users.length === 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN", 
-          message: "You don't have permission to update this item",
-        });
-      }
-
-      const updatedItem = await prisma.item.update({
-        where: { id: input.itemId },
-        data: {
-          inventory: input.inventory,
-        },
-        include: {
-          tenant: true,
-        },
-      });
-
-      return {
-        success: true,
-        item: updatedItem,
-        stockStatus: {
-          isOutOfStock: updatedItem.trackInventory && updatedItem.inventory <= 0,
-          isLowStock: updatedItem.trackInventory && updatedItem.inventory <= updatedItem.lowStockThreshold,
-        },
-      };
-    }),
-
-  // Toggle item availability
-  toggleAvailability: protectedProcedure
-    .input(
-      z.object({
-        itemId: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Check ownership (same as updateStock)
-      const item = await prisma.item.findUnique({
-        where: { id: input.itemId },
-        include: {
-          tenant: {
-            include: {
-              users: {
-                where: {
-                  userId: ctx.session.user.id,
-                },
+      const dataWithSummarizedReviews = await Promise.all(
+        data.docs.map(async (doc) => {
+          const reviewsData = await ctx.db.find({
+            collection: "reviews",
+            pagination: false,
+            where: {
+              book: {
+                equals: doc.id,
               },
             },
-          },
-        },
-      });
+          });
 
-      if (!item || item.tenant.users.length === 0) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You don't have permission to update this item",
-        });
-      }
-
-      const updatedItem = await prisma.item.update({
-        where: { id: input.itemId },
-        data: {
-          isActive: !item.isActive,
-        },
-      });
+          return {
+            ...doc,
+            reviewCount: reviewsData.totalDocs,
+            reviewRating:
+              reviewsData.docs.length === 0
+                ? 0
+                : Math.round(
+                    (reviewsData.docs.reduce(
+                      (acc, review) => acc + review.rating,
+                      0
+                    ) /
+                      reviewsData.totalDocs) *
+                      10
+                  ) / 10,
+          };
+        })
+      );
 
       return {
-        success: true,
-        isActive: updatedItem.isActive,
-        message: updatedItem.isActive ? "Item is now available" : "Item is now unavailable",
+        ...data,
+        docs: dataWithSummarizedReviews.map((doc) => ({
+          ...doc,
+          image: doc.image as Media | null,
+          tenant: doc.tenant as Tenant & { image: Media | null },
+        })),
       };
     }),
 });

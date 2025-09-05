@@ -3,8 +3,8 @@ import type { SearchParams } from "nuqs/server";
 import { DEFAULT_LIMIT } from "@/constants";
 import { getQueryClient, trpc } from "@/trpc/server";
 
-import { BookListView } from "@/modules/books/ui/views/book-list-view";
-import { loadBookFilters } from "@/modules/books/search-params";
+import { ItemListView } from "@/modules/items/ui/views/item-list-view";
+import { loadItemFilters } from "@/modules/items/search-params";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 
 interface Props {
@@ -16,11 +16,11 @@ export const dynamic = "force-dynamic";
 
 const Page = async ({ params, searchParams }: Props) => {
   const { slug } = await params;
-  const filters = await loadBookFilters(searchParams);
+  const filters = await loadItemFilters(searchParams);
 
   const queryClient = getQueryClient();
   void queryClient.prefetchInfiniteQuery(
-    trpc.books.getMany.infiniteQueryOptions({
+    trpc.items.getMany.infiniteQueryOptions({
       ...filters,
       tenantSlug: slug,
       limit: DEFAULT_LIMIT,
@@ -29,7 +29,7 @@ const Page = async ({ params, searchParams }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <BookListView tenantSlug={slug} narrowView />
+      <ItemListView tenantSlug={slug} narrowView />
     </HydrationBoundary>
   );
 };
