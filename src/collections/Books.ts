@@ -3,7 +3,7 @@ import { Tenant } from "@/payload-types";
 import type { CollectionConfig } from "payload";
 
 export const Items: CollectionConfig = {
-  slug: "books",
+  slug: "items",
   access: {
     create: ({ req }) => {
       if (isSuperAdmin(req.user)) return true;

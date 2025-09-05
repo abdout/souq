@@ -70,7 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     categories: Category;
-    books: Book;
+    items: Book;
     tags: Tag;
     tenants: Tenant;
     orders: Order;
@@ -88,7 +88,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    books: BooksSelect<false> | BooksSelect<true>;
+    items: BooksSelect<false> | BooksSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
@@ -288,7 +288,7 @@ export interface Book {
 export interface Tag {
   id: string;
   name: string;
-  books?: (string | Book)[] | null;
+  items?: (string | Book)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -345,7 +345,7 @@ export interface PayloadLockedDocument {
         value: string | Category;
       } | null)
     | ({
-        relationTo: 'books';
+        relationTo: 'items';
         value: string | Book;
       } | null)
     | ({
@@ -487,7 +487,7 @@ export interface BooksSelect<T extends boolean = true> {
  */
 export interface TagsSelect<T extends boolean = true> {
   name?: T;
-  books?: T;
+  items?: T;
   updatedAt?: T;
   createdAt?: T;
 }
