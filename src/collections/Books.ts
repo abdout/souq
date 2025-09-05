@@ -2,8 +2,8 @@ import { isSuperAdmin } from "@/lib/access";
 import { Tenant } from "@/payload-types";
 import type { CollectionConfig } from "payload";
 
-export const Books: CollectionConfig = {
-  slug: "books",
+export const Items: CollectionConfig = {
+  slug: "items",
   access: {
     create: ({ req }) => {
       if (isSuperAdmin(req.user)) return true;
@@ -15,18 +15,84 @@ export const Books: CollectionConfig = {
   },
   admin: {
     useAsTitle: "name",
-    description: "You must verify your account before creating books",
+    description: "You must verify your account before creating items",
   },
   fields: [
+    {
+      name: "businessType",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Food", value: "food" },
+        { label: "Medicine", value: "medicine" },
+        { label: "Grocery", value: "grocery" },
+      ],
+      defaultValue: "food",
+      admin: {
+        description: "Category of item for the delivery business",
+      },
+    },
     {
       name: "name",
       type: "text",
       required: true,
     },
     {
-      name: "author",
-      type: "text",
+      name: "inventory",
+      type: "number",
       required: true,
+      defaultValue: 100,
+      admin: {
+        description: "Current stock quantity available",
+      },
+    },
+    {
+      name: "lowStockThreshold",
+      type: "number",
+      defaultValue: 10,
+      admin: {
+        description: "Alert when stock falls below this number",
+      },
+    },
+    {
+      name: "trackInventory",
+      type: "checkbox",
+      defaultValue: true,
+      admin: {
+        description: "Enable inventory tracking for this item",
+      },
+    },
+    {
+      name: "unit",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Piece", value: "piece" },
+        { label: "Kilogram", value: "kg" },
+        { label: "Liter", value: "liter" },
+        { label: "Pack", value: "pack" },
+        { label: "Box", value: "box" },
+      ],
+      defaultValue: "piece",
+      admin: {
+        description: "Unit of measurement for this item",
+      },
+    },
+    {
+      name: "isPerishable",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Whether this item has a short shelf life",
+      },
+    },
+    {
+      name: "prescriptionRequired",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Whether this medicine requires a prescription",
+      },
     },
     {
       name: "description",
@@ -58,17 +124,12 @@ export const Books: CollectionConfig = {
       relationTo: "media",
     },
     {
-      name: "refundPolicy",
-      type: "select",
-      options: ["30-day", "14-day", "7-day", "3-day", "1-day", "no-refunds"],
-      defaultValue: "30-day",
-    },
-    {
-      name: "content",
-      type: "richText",
+      name: "deliveryTime",
+      type: "number",
+      required: true,
+      defaultValue: 30,
       admin: {
-        description:
-          "Protected content only visible to customers after purchase. Add book documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting",
+        description: "Estimated preparation time in minutes",
       },
     },
     {

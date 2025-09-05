@@ -47,7 +47,7 @@ export const libraryRouter = createTRPCRouter({
       }
 
       const book = await ctx.db.findByID({
-        collection: "books",
+        collection: "items",
         id: input.bookId,
       });
 
@@ -82,7 +82,7 @@ export const libraryRouter = createTRPCRouter({
       const bookIds = ordersData.docs.map((order) => order.book);
 
       const booksData = await ctx.db.find({
-        collection: "books",
+        collection: "items",
         pagination: false,
         where: {
           id: {
@@ -151,7 +151,7 @@ export const libraryRouter = createTRPCRouter({
       try {
         // First fetch the book to check if it exists
         const book = await ctx.db.findByID({
-          collection: "books",
+          collection: "items",
           id: input.bookId,
           depth: 2, // Include category, tags, and tenant information
         });

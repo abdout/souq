@@ -26,9 +26,9 @@ export const Reviews: CollectionConfig = {
       max: 5,
     },
     {
-      name: "book",
+      name: "item",
       type: "relationship",
-      relationTo: "books",
+      relationTo: "items",
       hasMany: false,
       required: true,
     },

@@ -21,9 +21,9 @@ export const Tags: CollectionConfig = {
       unique: true,
     },
     {
-      name: "books",
+      name: "items",
       type: "relationship",
-      relationTo: "books",
+      relationTo: "items",
       hasMany: true,
     },
   ],

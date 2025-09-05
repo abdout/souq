@@ -8,7 +8,7 @@ import {
 } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import type Stripe from "stripe";
-import { BookMetadata, CheckoutMetadata } from "../type";
+import { ItemMetadata, CheckoutMetadata } from "../type";
 import { stripe } from "@/lib/stripe";
 import { PLATFORM_FEE_PERCENTAGE } from "@/constants";
 import { generateTenantURL } from "@/lib/utils";
@@ -52,19 +52,19 @@ export const checkoutRouter = createTRPCRouter({
   purchase: protectedProcedure
     .input(
       z.object({
-        bookIds: z.array(z.string()).min(1),
+        itemIds: z.array(z.string()).min(1),
         tenantSlug: z.string().min(1),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const books = await ctx.db.find({
-        collection: "books",
+      const items = await ctx.db.find({
+        collection: "items",
         depth: 2,
         where: {
           and: [
             {
               id: {
-                in: input.bookIds,
+                in: input.itemIds,
               },
             },
             {
@@ -81,8 +81,8 @@ export const checkoutRouter = createTRPCRouter({
         },
       });
 
-      if (books.totalDocs !== input.bookIds.length) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Books not found" });
+      if (items.totalDocs !== input.itemIds.length) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Items not found" });
       }
 
       const tenantsData = await ctx.db.find({
@@ -109,29 +109,29 @@ export const checkoutRouter = createTRPCRouter({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message:
-            "Tenant not allowed to sell books until Stripe verification is complete",
+            "Tenant not allowed to sell items until Stripe verification is complete",
         });
       }
 
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
-        books.docs.map((book) => ({
+        items.docs.map((item) => ({
           quantity: 1,
           price_data: {
-            unit_amount: book.price * 100, // Stripe handles prices in cents
+            unit_amount: item.price * 100, // Stripe handles prices in cents
             currency: "usd",
             product_data: {
-              name: book.name,
+              name: item.name,
               metadata: {
                 stripeAccountId: tenant.stripeAccountId,
-                id: book.id,
-                name: book.name,
-                price: book.price,
-              } as BookMetadata,
+                id: item.id,
+                name: item.name,
+                price: item.price,
+              } as ItemMetadata,
             },
           },
         }));
 
-      const totalAmount = books.docs.reduce(
+      const totalAmount = items.docs.reduce(
         (acc, item) => acc + item.price * 100,
         0
       );
@@ -173,7 +173,7 @@ export const checkoutRouter = createTRPCRouter({
 
       return { url: checkout.url };
     }),
-  getBooks: baseProcedure
+  getItems: baseProcedure
     .input(
       z.object({
         ids: z.array(z.string()),
@@ -181,7 +181,7 @@ export const checkoutRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const data = await ctx.db.find({
-        collection: "books",
+        collection: "items",
         depth: 2, // Populate "category", "image", "tenant" & "tenant.image"
         where: {
           and: [
@@ -200,11 +200,11 @@ export const checkoutRouter = createTRPCRouter({
       });
 
       if (data.totalDocs !== input.ids.length) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Books not found" });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Items not found" });
       }
 
-      const totalPrice = data.docs.reduce((acc, book) => {
-        const price = Number(book.price);
+      const totalPrice = data.docs.reduce((acc, item) => {
+        const price = Number(item.price);
         return acc + (isNaN(price) ? 0 : price);
       }, 0);
 

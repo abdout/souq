@@ -1,0 +1,225 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and tenant management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenants UserTenant[]
+  orders  Order[]
+  reviews Review[]
+
+  @@map("users")
+}
+
+// Junction table for user-tenant relationships
+model UserTenant {
+  id       String @id @default(cuid())
+  userId   String
+  tenantId String
+  role     String @default("owner") // owner, manager, staff
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@map("user_tenants")
+}
+
+// Tenant model for multi-tenant architecture (merchants)
+model Tenant {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  image       String?
+
+  // Business information
+  businessType    String // restaurant, pharmacy, grocery
+  businessLicense String?
+  address         String
+  coordinates     Json // {lat: number, lng: number}
+
+  // Delivery settings
+  deliveryRadius Float   @default(10) // in kilometers
+  minimumOrder   Float   @default(0)
+  deliveryFee    Float   @default(5)
+  isActive       Boolean @default(true)
+
+  // Operating hours
+  operatingHours Json // {monday: {open: "09:00", close: "22:00", closed: false}, ...}
+
+  // Stripe integration
+  stripeAccountId        String?
+  stripeDetailsSubmitted Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users      UserTenant[]
+  items      Item[]
+  orders     Order[]
+  categories Category[]
+
+  @@map("tenants")
+}
+
+// Category model for organizing items
+model Category {
+  id           String  @id @default(cuid())
+  name         String
+  slug         String
+  description  String?
+  image        String?
+  businessType String? // filter categories by business type
+
+  // Tenant relation
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Relations
+  items Item[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, tenantId])
+  @@map("categories")
+}
+
+// Item model (formerly Books - now physical products)
+model Item {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  price       Float
+  image       String?
+
+  // Product specific fields
+  businessType         String  // food, medicine, grocery
+  inventory            Int     @default(100)
+  lowStockThreshold    Int     @default(10)
+  trackInventory       Boolean @default(true)
+  unit                 String  @default("piece") // piece, kg, liter, etc.
+  isPerishable         Boolean @default(false)
+  prescriptionRequired Boolean @default(false)
+  deliveryTime         Int     @default(30) // estimated minutes
+
+  // Status
+  isActive  Boolean @default(true)
+  isFeatured Boolean @default(false)
+
+  // Relations
+  tenantId   String
+  tenant     Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([slug, tenantId])
+  @@map("items")
+}
+
+// Order model for delivery orders
+model Order {
+  id            String @id @default(cuid())
+  orderNumber   String @unique
+  orderStatus   String @default("pending") // pending, confirmed, preparing, ready, out_for_delivery, delivered, cancelled
+  orderType     String @default("delivery") // delivery, pickup
+
+  // Pricing
+  subtotal    Float
+  deliveryFee Float @default(0)
+  total       Float
+
+  // Delivery information
+  deliveryAddress      Json    // {street, city, postalCode, country, coordinates, instructions}
+  specialInstructions  String?
+  estimatedDelivery    DateTime?
+  actualDelivery       DateTime?
+
+  // Payment
+  paymentStatus            String  @default("pending") // pending, paid, failed, refunded
+  stripeCheckoutSessionId  String?
+  stripePaymentIntentId    String?
+
+  // Relations
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  orderItems OrderItem[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+// Junction table for order items
+model OrderItem {
+  id       String @id @default(cuid())
+  quantity Int    @default(1)
+  price    Float  // price at time of order
+  
+  specialInstructions String?
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemId  String
+  item    Item   @relation(fields: [itemId], references: [id])
+
+  @@unique([orderId, itemId])
+  @@map("order_items")
+}
+
+// Review model for items and merchants
+model Review {
+  id      String @id @default(cuid())
+  rating  Int    // 1-5 stars
+  comment String?
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, itemId])
+  @@map("reviews")
+}

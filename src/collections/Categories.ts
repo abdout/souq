@@ -15,6 +15,20 @@ export const Categories: CollectionConfig = {
   },
   fields: [
     {
+      name: "businessType",
+      type: "select",
+      options: [
+        { label: "Food", value: "food" },
+        { label: "Pharmacy", value: "pharmacy" },
+        { label: "Grocery", value: "grocery" },
+        { label: "All", value: "all" },
+      ],
+      defaultValue: "all",
+      admin: {
+        description: "Which business vertical this category applies to",
+      },
+    },
+    {
       name: "name",
       type: "text",
       required: true,

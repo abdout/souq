@@ -19,7 +19,7 @@ export const booksRouter = createTRPCRouter({
       const session = await ctx.db.auth({ headers });
 
       const book = await ctx.db.findByID({
-        collection: "books",
+        collection: "items",
         id: input.id,
         depth: 2, // Load book.image, book.tenant and book.tenant.image
         select: {
@@ -224,7 +224,7 @@ export const booksRouter = createTRPCRouter({
       }
 
       const data = await ctx.db.find({
-        collection: "books",
+        collection: "items",
         depth: 2, // Populate "category", "image", "tenant"
         where,
         sort,

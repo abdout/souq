@@ -1,5 +1,5 @@
-// storage-adapter-import-placeholder
-import { postgresAdapter } from "@payloadcms/db-postgres";
+// Simplified payload config for seeding without Vercel Blob
+import { mongooseAdapter } from "@payloadcms/db-mongodb";
 import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import path from "path";
@@ -7,7 +7,23 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 import { fileURLToPath } from "url";
 
-import { Media } from "./collections/Media";
+// Simplified Media collection without Vercel Blob
+const SimpleMedia = {
+  slug: "media",
+  admin: {
+    useAsTitle: "filename",
+  },
+  upload: {
+    staticDir: "media",
+  },
+  fields: [
+    {
+      name: "filename",
+      type: "text" as const,
+      required: true,
+    },
+  ],
+};
 import { Users } from "./collections/Users";
 
 import { multiTenantPlugin } from "@payloadcms/plugin-multi-tenant";
@@ -19,7 +35,6 @@ import { Tags } from "./collections/Tabs";
 import { Tenants } from "./collections/Tenants";
 import { isSuperAdmin } from "./lib/access";
 import { Config } from "./payload-types";
-// import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -30,13 +45,10 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    components: {
-      beforeNavLinks: ["@/components/stripe-verify#StripeVerify"],
-    },
   },
   collections: [
     Users,
-    Media,
+    SimpleMedia,
     Categories,
     Items,
     Tags,
@@ -49,10 +61,8 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URI || "",
-    },
+  db: mongooseAdapter({
+    url: process.env.DATABASE_URI || "",
   }),
   sharp,
   plugins: [
@@ -67,13 +77,6 @@ export default buildConfig({
       },
       userHasAccessToAllTenants: (user) => isSuperAdmin(user),
     }),
-    // Temporarily disabled until valid Vercel Blob token is provided
-    // vercelBlobStorage({
-    //   enabled: true,
-    //   collections: {
-    //     media: true,
-    //   },
-    //   token: process.env.BLOB_READ_WRITE_TOKEN,
-    // }),
+    // Skip Vercel Blob for seeding
   ],
 });
