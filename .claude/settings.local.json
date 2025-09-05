@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(do mv \"$f\" \"$f//book-/item-\")"
+      "Bash(do mv \"$f\" \"$f//book-/item-\")",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

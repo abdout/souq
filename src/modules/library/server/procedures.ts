@@ -14,7 +14,7 @@ export const libraryRouter = createTRPCRouter({
   getOne: protectedProcedure
     .input(
       z.object({
-        bookId: z.string(),
+        itemId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -25,8 +25,8 @@ export const libraryRouter = createTRPCRouter({
         where: {
           and: [
             {
-              book: {
-                equals: input.bookId,
+              item: {
+                equals: input.itemId,
               },
             },
             {
@@ -46,19 +46,19 @@ export const libraryRouter = createTRPCRouter({
         });
       }
 
-      const book = await ctx.db.findByID({
+      const item = await ctx.db.findByID({
         collection: "items",
-        id: input.bookId,
+        id: input.itemId,
       });
 
-      if (!book) {
+      if (!item) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Book not found",
+          message: "Item not found",
         });
       }
 
-      return book;
+      return item;
     }),
   getMany: protectedProcedure
     .input(
@@ -79,25 +79,25 @@ export const libraryRouter = createTRPCRouter({
           },
         },
       });
-      const bookIds = ordersData.docs.map((order) => order.book);
+      const itemIds = ordersData.docs.map((order) => order.item);
 
-      const booksData = await ctx.db.find({
+      const itemsData = await ctx.db.find({
         collection: "items",
         pagination: false,
         where: {
           id: {
-            in: bookIds,
+            in: itemIds,
           },
         },
       });
 
       const dataWithSummarizedReviews = await Promise.all(
-        booksData.docs.map(async (doc) => {
+        itemsData.docs.map(async (doc) => {
           const reviewsData = await ctx.db.find({
             collection: "reviews",
             pagination: false,
             where: {
-              book: {
+              item: {
                 equals: doc.id,
               },
             },
@@ -122,7 +122,7 @@ export const libraryRouter = createTRPCRouter({
       );
 
       return {
-        ...booksData,
+        ...itemsData,
         docs: dataWithSummarizedReviews.map((doc) => ({
           ...doc,
           image: doc.image as Media | null,
@@ -131,10 +131,10 @@ export const libraryRouter = createTRPCRouter({
       };
     }),
 
-  getBookDetails: baseProcedure
+  getItemDetails: baseProcedure
     .input(
       z.object({
-        bookId: z.string(),
+        itemId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -144,26 +144,26 @@ export const libraryRouter = createTRPCRouter({
       if (!session.user) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "You must be logged in to view book details",
+          message: "You must be logged in to view item details",
         });
       }
 
       try {
-        // First fetch the book to check if it exists
-        const book = await ctx.db.findByID({
+        // First fetch the item to check if it exists
+        const item = await ctx.db.findByID({
           collection: "items",
-          id: input.bookId,
+          id: input.itemId,
           depth: 2, // Include category, tags, and tenant information
         });
 
-        if (!book) {
+        if (!item) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "Book not found",
+            message: "Item not found",
           });
         }
 
-        // Check if user has purchased this book
+        // Check if user has purchased this item
         const ordersData = await ctx.db.find({
           collection: "orders",
           pagination: false,
@@ -171,8 +171,8 @@ export const libraryRouter = createTRPCRouter({
           where: {
             and: [
               {
-                book: {
-                  equals: input.bookId,
+                item: {
+                  equals: input.itemId,
                 },
               },
               {
@@ -187,14 +187,14 @@ export const libraryRouter = createTRPCRouter({
         if (!ordersData.docs.length) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "You don't have access to this book",
+            message: "You don't have access to this item",
           });
         }
 
         return {
-          ...book,
-          image: book.image as Media | null,
-          tenant: book.tenant as Tenant & { image: Media | null },
+          ...item,
+          image: item.image as Media | null,
+          tenant: item.tenant as Tenant & { image: Media | null },
           isPurchased: true,
         };
       } catch (error) {
@@ -202,7 +202,7 @@ export const libraryRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch book details",
+          message: "Failed to fetch item details",
           cause: error,
         });
       }

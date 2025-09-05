@@ -1,6 +1,6 @@
 "use client";
 
-import { useBookFilters } from "@/modules/books/hooks/use-book-filters";
+import { useItemFilters } from "@/modules/items/hooks/use-item-filters";
 import { DEFAULT_BG_COLOR } from "@/modules/home/constants";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -12,7 +12,7 @@ import { SearchInput } from "./search-input";
 export const SearchFilters = () => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions());
-  const [filters, setFilters] = useBookFilters();
+  const [filters, setFilters] = useItemFilters();
 
   const params = useParams();
   const categoryParam = params.category as string | undefined;
