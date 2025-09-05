@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { DEFAULT_LIMIT } from "@/constants";
 import { loadBookFilters } from "@/modules/books/search-params";
 import { BookListView } from "@/modules/books/ui/views/book-list-view";
