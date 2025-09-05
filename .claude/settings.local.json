@@ -20,7 +20,9 @@
       "Bash(npx payload generate:types)",
       "Bash(dir)",
       "Bash(set NODE_ENV=production)",
-      "Bash(pnpm next:*)"
+      "Bash(pnpm next:*)",
+      "Bash(tsx prisma/seed-simple.ts:*)",
+      "Bash(pnpm tsx:*)"
     ],
     "deny": [],
     "ask": []
