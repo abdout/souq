@@ -10,15 +10,19 @@ export function generateTenantURL(tenantSlug: string) {
   const isSubdomainRoutingEnabled =
     process.env.NEXT_PUBLIC_ENABLE_SUBDOMAIN_ROUTING === "true";
 
-  // In development or subdomain routing disabled mode, use normal routing
-  if (isDevelopment || !isSubdomainRoutingEnabled) {
-    return `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${tenantSlug}`;
+  // In development, use path-based routing for easier testing
+  if (isDevelopment && !isSubdomainRoutingEnabled) {
+    return `/tenants/${tenantSlug}`;
   }
 
-  const protocol = "https";
-  const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN!;
-
-  // In production, use subdomain routing
+  // For production or when subdomain routing is explicitly enabled
+  const protocol = typeof window !== 'undefined' 
+    ? window.location.protocol.replace(':', '') 
+    : 'https';
+  
+  const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'databayt.org';
+  
+  // Use subdomain routing for production
   return `${protocol}://${tenantSlug}.${domain}`;
 }
 
@@ -35,9 +39,9 @@ export function generateTenantURL(tenantSlug: string) {
 // }
 
 export function formatCurrency(value: number | string) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("ar-SA", {
     style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
+    currency: "SAR",
+    maximumFractionDigits: 2,
   }).format(Number(value));
 }
