@@ -48,7 +48,7 @@ export const tenantsRouter = createTRPCRouter({
       const { userLocation, businessType, maxDistance, limit, currentlyDelivering } = input;
       
       // Build where clause
-      const where: Record<string, any> = {
+      const where: Record<string, unknown> = {
         isActive: true,
       };
 
@@ -136,7 +136,7 @@ export const tenantsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { businessType, limit, offset, userLocation, onlyCurrentlyDelivering } = input;
 
-      const where: Record<string, any> = {
+      const where: Record<string, unknown> = {
         businessType,
         isActive: true,
       };
@@ -223,7 +223,7 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-function checkIfCurrentlyOpen(operatingHours: Record<string, any>): boolean {
+function checkIfCurrentlyOpen(operatingHours: Record<string, unknown>): boolean {
   if (!operatingHours) return true;
   
   const now = new Date();

@@ -334,7 +334,7 @@ export const ordersRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: Record<string, any> = {
+      const where: Record<string, unknown> = {
         user: {
           equals: ctx.session.user.id,
         },
@@ -422,7 +422,7 @@ export const ordersRouter = createTRPCRouter({
         };
       }
 
-      const where: Record<string, any> = {
+      const where: Record<string, unknown> = {
         item: {
           in: itemIds,
         },
@@ -451,12 +451,12 @@ export const ordersRouter = createTRPCRouter({
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
           customer: {
-            name: (order.user as Record<string, any>)?.name || `${(order.user as Record<string, any>)?.firstName} ${(order.user as Record<string, any>)?.lastName}` || (order.user as Record<string, any>)?.email || 'Unknown Customer',
-            email: (order.user as Record<string, any>)?.email,
+            name: (order.user as Record<string, unknown>)?.name || `${(order.user as Record<string, unknown>)?.firstName} ${(order.user as Record<string, unknown>)?.lastName}` || (order.user as Record<string, unknown>)?.email || 'Unknown Customer',
+            email: (order.user as Record<string, unknown>)?.email,
           },
           item: {
-            name: (order.item as Record<string, any>)?.name,
-            price: (order.item as Record<string, any>)?.price,
+            name: (order.item as Record<string, unknown>)?.name,
+            price: (order.item as Record<string, unknown>)?.price,
           },
           deliveryAddress: order.deliveryAddress,
           deliveryFee: order.deliveryFee,
@@ -511,8 +511,8 @@ export const ordersRouter = createTRPCRouter({
       // Send status update notification (async, don't block response)
       setTimeout(async () => {
         try {
-          const customer = order.user as Record<string, any>;
-          const item = order.item as Record<string, any>;
+          const customer = order.user as Record<string, unknown>;
+          const item = order.item as Record<string, unknown>;
 
           // Get tenant info for merchant name
           const tenantQuery = await ctx.db.find({
@@ -581,23 +581,13 @@ export const ordersRouter = createTRPCRouter({
       }
 
       // Verify access - user must own the order or be the merchant
-      const customer = order.user as Record<string, any>;
-      const item = order.item as Record<string, any>;
+      const customer = order.user as Record<string, unknown>;
+      const item = order.item as Record<string, unknown>;
 
       const hasAccess = customer.id === ctx.session.user.id;
 
       if (!hasAccess) {
         // Check if user is merchant (simplified check)
-        const tenantQuery = await ctx.db.find({
-          collection: "tenants",
-          where: {
-            id: {
-              equals: item.tenant.id,
-            },
-          },
-          limit: 1,
-        });
-
         // Note: In a full implementation, you'd check if the current user is the owner of this tenant
       }
 
@@ -662,7 +652,7 @@ function getPreparationTime(businessType: string): number {
 }
 
 async function calculateDeliveryFeeForOrder(
-  merchant: Record<string, any>,
+  merchant: Record<string, unknown>,
   deliveryCoords: { lat: number; lng: number },
   orderTotal: number
 ) {
