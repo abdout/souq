@@ -79,12 +79,12 @@ export const Navbar = () => {
         <Image
           src="/logo.png"
           alt="Souq Logo"
-          width={40}
-          height={40}
+          width={16}
+          height={16}
           className="filter brightness-0 saturate-100"
           style={{ filter: 'brightness(0) saturate(100%) invert(67%) sepia(95%) saturate(1234%) hue-rotate(75deg) brightness(95%) contrast(89%)' }}
         />
-        <span className={cn("text-5xl font-semibold text-white", poppins.className)}>
+        <span className={cn("text-lg font-semibold text-white", poppins.className)}>
           Souq
         </span>
       </Link>
@@ -124,11 +124,11 @@ export const Navbar = () => {
           </Button>
         </div>
       ) : (
-        <div className="hidden lg:flex">
+        <div className="">
           <Button
             asChild
             variant="secondary"
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
+            className="hidden xl:flex border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
                   hover:bg-[#87E64B] transition-colors text-lg"
           >
             <Link prefetch href="/sign-in">
@@ -137,8 +137,8 @@ export const Navbar = () => {
           </Button>
           <Button
             asChild
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
-                  hover:bg-[#87E64B] hover:text-black transition-colors text-lg"
+            className="  rounded-md bg-[#87E64B]
+                  hover:bg-[#87E64B]/20 transition-colors text-lg"
           >
             <Link prefetch href="/sign-up">
               Start selling
@@ -146,7 +146,7 @@ export const Navbar = () => {
           </Button>
         </div>
       )}
-      <div className="flex lg:hidden items-center justify-center">
+      <div className="flex xl:hidden items-center justify-center">
         <Button
           variant="ghost"
           className="size-12 border-transparent bg-black text-white hover:bg-gray-800"

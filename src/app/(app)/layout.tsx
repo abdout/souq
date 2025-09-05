@@ -1,44 +1,18 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Analytics } from "@vercel/analytics/next";
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
-  title: "Lexi ❤️ Book Lover",
-  description: "Lexi protects the value of books and promotes reading.",
-  icons: {
-    icon: [
-      {
-        url: "/icons/icons8-story-book-pulsar-gradient-16.png",
-        sizes: "16x16",
-        type: "image/png",
-      },
-      {
-        url: "/icons/icons8-story-book-pulsar-gradient-32.png",
-        sizes: "32x32",
-        type: "image/png",
-      },
-      {
-        url: "/icons/icons8-story-book-pulsar-gradient-96.png",
-        sizes: "96x96",
-        type: "image/png",
-      },
-    ],
-    apple: [
-      {
-        url: "/icons/icons8-story-book-pulsar-gradient-96.png",
-        sizes: "96x96",
-        type: "image/png",
-      },
-    ],
-  },
+  title: "Souq",
+  description: "Marketplace for restaurants, pharmacies, and grocery stores.",
+ 
 };
 
 export default function RootLayout({
@@ -48,7 +22,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.className} antialiased`}>
+      <body
+        className={cn(
+          "font-sans antialiased",
+          GeistSans.className,
+          GeistMono.variable
+        )}
+      >
         <NuqsAdapter>
           <Analytics />
           <TRPCReactProvider>
