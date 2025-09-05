@@ -1,7 +1,7 @@
 import { authRouter } from "@/modules/auth/server/procedures";
 import { createTRPCRouter } from "../init";
 import { categoriesRouter } from "@/modules/categories/server/procedures";
-import { booksRouter } from "@/modules/books/server/procedures";
+import { booksRouter } from "@/modules/books/server/procedures-prisma";
 import { itemsRouter } from "@/modules/items/server/procedures";
 import { tagsRouter } from "@/modules/tags/server/procedures";
 import { tenantsRouter } from "@/modules/tenants/server/procedures";

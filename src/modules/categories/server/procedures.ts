@@ -1,25 +1,29 @@
-import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { Category } from "@/payload-types";
+import { createTRPCRouter, baseProcedure } from "@/trpc/init";
+import { prisma } from "@/lib/db";
 
 export const categoriesRouter = createTRPCRouter({
-  getMany: baseProcedure.query(async ({ ctx }) => {
-    const data = await ctx.db.find({
-      collection: "categories",
-      depth: 1, // Populate subcategories, subcategories[0] will be a type of "Category"
-      pagination: false,
+  getMany: baseProcedure.query(async () => {
+    // Get all categories (for now, return all without parent-child relationship)
+    const categories = await prisma.category.findMany({
       where: {
-        parent: {
-          exists: false, // Get top-level categories (those without parents)
-        },
+        tenantId: null, // Global categories
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
-    const formattedData = data.docs.map((doc) => ({
-      ...doc,
-      subcategories: (doc.subcategories?.docs ?? []).map((doc) => ({
-        // Because of "depth: 1" we are confident "doc" will be a type of "Category"
-        ...(doc as Category),
-      })),
+    // Format for compatibility with existing frontend
+    const formattedData = categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      image: cat.image,
+      businessType: cat.businessType,
+      createdAt: cat.createdAt.toISOString(),
+      updatedAt: cat.updatedAt.toISOString(),
+      subcategories: [], // No subcategories for now
     }));
 
     return formattedData;
