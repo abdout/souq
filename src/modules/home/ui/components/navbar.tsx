@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useTRPC } from "@/trpc/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -29,8 +30,8 @@ const NavbarItem = ({ href, children, isActive }: NavbarItemProps) => {
       asChild
       variant="outline"
       className={cn(
-        "bg-transparent hover:bg-transparent rounded-full hover:border-primary border-transparent px-3.5 text-lg",
-        isActive && "bg-black text-white hover:bg-black hover:text-white"
+        "bg-transparent hover:bg-transparent rounded-full hover:border-[#87E64B] border-transparent px-3.5 text-lg text-white",
+        isActive && "bg-[#87E64B] text-black hover:bg-[#87E64B] hover:text-black"
       )}
     >
       <Link href={href}>{children}</Link>
@@ -73,9 +74,17 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="h-14 flex border-b justify-between font-medium bg-white">
-      <Link href="/" className="pl-6 flex items-center">
-        <span className={cn("text-5xl font-semibold", poppins.className)}>
+    <nav className="h-14 flex border-b justify-between font-medium bg-black">
+      <Link href="/" className="pl-6 flex items-center gap-3">
+        <Image
+          src="/logo.png"
+          alt="Souq Logo"
+          width={40}
+          height={40}
+          className="filter brightness-0 saturate-100"
+          style={{ filter: 'brightness(0) saturate(100%) invert(67%) sepia(95%) saturate(1234%) hue-rotate(75deg) brightness(95%) contrast(89%)' }}
+        />
+        <span className={cn("text-5xl font-semibold text-white", poppins.className)}>
           Souq
         </span>
       </Link>
@@ -87,7 +96,7 @@ export const Navbar = () => {
         onLogout={handleLogout}
         isLoggingOut={isPending}
       />
-      <div className="items-center gap-4 hidden lg:flex">
+      <div className="items-center gap-4 hidden xl:flex">
         {navbarItems.map((item) => (
           <NavbarItem
             key={item.href}
@@ -102,7 +111,7 @@ export const Navbar = () => {
         <div className="hidden lg:flex">
           <Button
             asChild
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:bg-pink-400 hover:text-black transition-colors text-lg"
+            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black hover:bg-[#87E64B] hover:text-black transition-colors text-lg"
           >
             <Link href="/admin">Dashboard</Link>
           </Button>
@@ -119,8 +128,8 @@ export const Navbar = () => {
           <Button
             asChild
             variant="secondary"
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white
-                  hover:bg-pink-400 transition-colors text-lg"
+            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
+                  hover:bg-[#87E64B] transition-colors text-lg"
           >
             <Link prefetch href="/sign-in">
               Log in
@@ -128,8 +137,8 @@ export const Navbar = () => {
           </Button>
           <Button
             asChild
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white
-                  hover:bg-pink-400 hover:text-black transition-colors text-lg"
+            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
+                  hover:bg-[#87E64B] hover:text-black transition-colors text-lg"
           >
             <Link prefetch href="/sign-up">
               Start selling
@@ -140,7 +149,7 @@ export const Navbar = () => {
       <div className="flex lg:hidden items-center justify-center">
         <Button
           variant="ghost"
-          className="size-12 border-transparent bg-white"
+          className="size-12 border-transparent bg-black text-white hover:bg-gray-800"
           onClick={() => setIsSidebarOpen(true)}
         >
           <MenuIcon />

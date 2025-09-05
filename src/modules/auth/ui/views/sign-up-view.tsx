@@ -134,7 +134,7 @@ export const SignUpView = () => {
               type="submit"
               size="lg"
               variant="elevated"
-              className="bg-black text-white hover:bg-pink-400 hover:text-primary"
+              className="bg-black text-white hover:bg-[#87E64B] hover:text-primary"
             >
               Create account
             </Button>

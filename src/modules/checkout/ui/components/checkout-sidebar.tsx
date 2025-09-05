@@ -28,7 +28,7 @@ export const CheckoutSidebar = ({
           disabled={disabled}
           onClick={onPurchase}
           size="lg"
-          className="text-base w-full text-white bg-primary hover:bg-pink-400 hover:text-primary"
+          className="text-base w-full text-white bg-primary hover:bg-[#87E64B] hover:text-primary"
         >
           Checkout
         </Button>

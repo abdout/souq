@@ -21,7 +21,7 @@ const CartButton = dynamic(
   {
     ssr: false,
     loading: () => (
-      <Button disabled className="flex-1 bg-pink-400">
+      <Button disabled className="flex-1 bg-[#87E64B]">
         Add to cart
       </Button>
     ),
@@ -60,7 +60,7 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
 
             <div className="border-y flex">
               <div className="px-6 py-4 flex items-center justify-center border-r">
-                <div className="relative px-2 py-1 border bg-pink-400 w-fit">
+                <div className="relative px-2 py-1 border bg-[#87E64B] w-fit">
                   <p className="text-base font-medium">
                     {formatCurrency(data.price)}
                   </p>

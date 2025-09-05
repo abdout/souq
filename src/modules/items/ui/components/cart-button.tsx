@@ -30,7 +30,7 @@ export const CartButton = ({ tenantSlug, bookId, isPurchased }: Props) => {
     <Button
       variant="elevated"
       className={cn(
-        "flex-1 bg-pink-400",
+        "flex-1 bg-[#87E64B]",
         cart.isBookInCart(bookId) && "bg-white"
       )}
       onClick={() => cart.toggleBook(bookId)}

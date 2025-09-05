@@ -20,7 +20,7 @@ export function generateTenantURL(tenantSlug: string) {
     ? window.location.protocol.replace(':', '') 
     : 'https';
   
-  const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'databayt.org';
+  const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'abdoutgroup.com';
   
   // Use subdomain routing for production
   return `${protocol}://${tenantSlug}.${domain}`;
