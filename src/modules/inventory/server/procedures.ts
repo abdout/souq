@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { isSuperAdmin } from "@/lib/access";
-import { Tenant } from "@/payload-types";
+import { Book, Tenant } from "@/types/payload-extensions";
 
 export const inventoryRouter = createTRPCRouter({
   // Get low stock items for a merchant
@@ -82,15 +82,18 @@ export const inventoryRouter = createTRPCRouter({
         limit: 100,
       });
 
-      return items.docs.map((item) => ({
-        id: item.id,
-        name: item.name,
-        inventory: item.inventory,
-        lowStockThreshold: item.lowStockThreshold || input.threshold || 10,
-        unit: item.unit,
-        businessType: item.businessType,
-        isLowStock: item.inventory <= (item.lowStockThreshold || input.threshold || 10),
-      }));
+      return items.docs.map((item) => {
+        const extendedItem = item as Book;
+        return {
+          id: extendedItem.id,
+          name: extendedItem.name,
+          inventory: extendedItem.inventory,
+          lowStockThreshold: extendedItem.lowStockThreshold || input.threshold || 10,
+          unit: extendedItem.unit,
+          businessType: extendedItem.businessType,
+          isLowStock: extendedItem.inventory <= (extendedItem.lowStockThreshold || input.threshold || 10),
+        };
+      });
     }),
 
   // Update inventory for a specific item
@@ -133,18 +136,21 @@ export const inventoryRouter = createTRPCRouter({
         id: input.itemId,
         data: {
           inventory: input.newQuantity,
-        },
+        } as any,
       });
 
+      const extendedItem = item as Book;
+      const extendedUpdatedItem = updatedItem as Book;
+
       // Log the inventory change (could be enhanced with proper audit log)
-      console.log(`Inventory updated for item ${item.name}: ${item.inventory} → ${input.newQuantity} (${input.reason || "manual"})`);
+      console.log(`Inventory updated for item ${extendedItem.name}: ${extendedItem.inventory} → ${input.newQuantity} (${input.reason || "manual"})`);
 
       return {
-        id: updatedItem.id,
-        name: updatedItem.name,
-        previousQuantity: item.inventory,
+        id: extendedUpdatedItem.id,
+        name: extendedUpdatedItem.name,
+        previousQuantity: extendedItem.inventory,
         newQuantity: input.newQuantity,
-        isLowStock: input.newQuantity <= (updatedItem.lowStockThreshold || 10),
+        isLowStock: input.newQuantity <= (extendedUpdatedItem.lowStockThreshold || 10),
       };
     }),
 
@@ -197,19 +203,21 @@ export const inventoryRouter = createTRPCRouter({
             id: update.itemId,
             data: {
               inventory: update.newQuantity,
-            },
+            } as any,
           });
+
+          const extendedItem = item as Book;
 
           results.push({
             itemId: update.itemId,
             success: true,
-            name: item.name,
-            previousQuantity: item.inventory,
+            name: extendedItem.name,
+            previousQuantity: extendedItem.inventory,
             newQuantity: update.newQuantity,
-            isLowStock: update.newQuantity <= (item.lowStockThreshold || 10),
+            isLowStock: update.newQuantity <= (extendedItem.lowStockThreshold || 10),
           });
 
-          console.log(`Bulk inventory update for ${item.name}: ${item.inventory} → ${update.newQuantity} (${input.reason || "bulk"})`);
+          console.log(`Bulk inventory update for ${extendedItem.name}: ${extendedItem.inventory} → ${update.newQuantity} (${input.reason || "bulk"})`);
         } catch (error) {
           results.push({
             itemId: update.itemId,
@@ -256,14 +264,20 @@ export const inventoryRouter = createTRPCRouter({
         limit: 1000, // Adjust based on needs
       });
 
-      const tracked = items.docs.filter((item) => item.trackInventory);
-      const outOfStock = tracked.filter((item) => item.inventory === 0);
+      const tracked = items.docs.filter((item) => (item as Book).trackInventory);
+      const outOfStock = tracked.filter((item) => (item as Book).inventory === 0);
       const lowStock = tracked.filter(
-        (item) => item.inventory > 0 && item.inventory <= (item.lowStockThreshold || 10)
+        (item) => {
+          const book = item as Book;
+          return book.inventory > 0 && book.inventory <= (book.lowStockThreshold || 10);
+        }
       );
 
       const totalValue = tracked.reduce(
-        (sum, item) => sum + (item.inventory * item.price),
+        (sum, item) => {
+          const book = item as Book;
+          return sum + (book.inventory * item.price);
+        },
         0
       );
 

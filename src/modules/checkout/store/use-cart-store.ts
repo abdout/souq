@@ -51,9 +51,11 @@ export const useCartStore = create<CartState>()(
           if (existingItemIndex >= 0) {
             // Update quantity if item exists
             updatedItems = [...currentCart.items];
+            const existingItem = updatedItems[existingItemIndex]!;
             updatedItems[existingItemIndex] = {
-              ...updatedItems[existingItemIndex],
-              quantity: updatedItems[existingItemIndex].quantity + quantity,
+              itemId: existingItem.itemId,
+              quantity: existingItem.quantity + quantity,
+              specialInstructions: existingItem.specialInstructions,
             };
           } else {
             // Add new item
@@ -72,17 +74,31 @@ export const useCartStore = create<CartState>()(
         }),
 
       removeItem: (tenantSlug, itemId) =>
-        set((state) => ({
-          tenantCarts: {
-            ...state.tenantCarts,
-            [tenantSlug]: {
-              ...state.tenantCarts[tenantSlug],
-              items: state.tenantCarts[tenantSlug]?.items.filter(
-                item => item.itemId !== itemId
-              ) || [],
+        set((state) => {
+          const currentCart = state.tenantCarts[tenantSlug];
+          if (!currentCart) {
+            return {
+              tenantCarts: {
+                ...state.tenantCarts,
+                [tenantSlug]: {
+                  items: [],
+                  orderType: 'delivery' as const,
+                },
+              },
+            };
+          }
+          return {
+            tenantCarts: {
+              ...state.tenantCarts,
+              [tenantSlug]: {
+                ...currentCart,
+                items: currentCart.items.filter(
+                  item => item.itemId !== itemId
+                ),
+              },
             },
-          },
-        })),
+          };
+        }),
 
       updateItemQuantity: (tenantSlug, itemId, quantity) =>
         set((state) => {
@@ -195,9 +211,11 @@ export const useCartStore = create<CartState>()(
           
           if (existingItemIndex >= 0) {
             updatedItems = [...currentCart.items];
+            const existingItem = updatedItems[existingItemIndex]!;
             updatedItems[existingItemIndex] = {
-              ...updatedItems[existingItemIndex],
-              quantity: updatedItems[existingItemIndex].quantity + 1,
+              itemId: existingItem.itemId,
+              quantity: existingItem.quantity + 1,
+              specialInstructions: existingItem.specialInstructions,
             };
           } else {
             updatedItems = [...currentCart.items, { itemId: bookId, quantity: 1 }];
@@ -215,21 +233,36 @@ export const useCartStore = create<CartState>()(
         }),
 
       removeBook: (tenantSlug, bookId) =>
-        set((state) => ({
-          tenantCarts: {
-            ...state.tenantCarts,
-            [tenantSlug]: {
-              ...state.tenantCarts[tenantSlug],
-              items: state.tenantCarts[tenantSlug]?.items.filter(
-                item => item.itemId !== bookId
-              ) || [],
-              // Also handle legacy bookIds
-              bookIds: state.tenantCarts[tenantSlug]?.bookIds?.filter(
-                id => id !== bookId
-              ),
+        set((state) => {
+          const currentCart = state.tenantCarts[tenantSlug];
+          if (!currentCart) {
+            return {
+              tenantCarts: {
+                ...state.tenantCarts,
+                [tenantSlug]: {
+                  items: [],
+                  orderType: 'delivery' as const,
+                  bookIds: undefined,
+                },
+              },
+            };
+          }
+          return {
+            tenantCarts: {
+              ...state.tenantCarts,
+              [tenantSlug]: {
+                ...currentCart,
+                items: currentCart.items.filter(
+                  item => item.itemId !== bookId
+                ),
+                // Also handle legacy bookIds
+                bookIds: currentCart.bookIds?.filter(
+                  id => id !== bookId
+                ),
+              },
             },
-          },
-        })),
+          };
+        }),
     }),
     {
       name: "lexi-cart",
@@ -239,12 +272,12 @@ export const useCartStore = create<CartState>()(
         if (state) {
           Object.keys(state.tenantCarts).forEach(tenantSlug => {
             const cart = state.tenantCarts[tenantSlug];
-            if (cart.bookIds && cart.bookIds.length > 0 && (!cart.items || cart.items.length === 0)) {
+            if (cart && cart.bookIds && cart.bookIds.length > 0 && (!cart.items || cart.items.length === 0)) {
               // Migrate legacy bookIds to items
               state.tenantCarts[tenantSlug] = {
                 ...cart,
                 items: cart.bookIds.map(id => ({ itemId: id, quantity: 1 })),
-                orderType: 'delivery',
+                orderType: cart.orderType || 'delivery',
                 bookIds: undefined,
               };
             }

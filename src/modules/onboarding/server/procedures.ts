@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { stripe } from "@/lib/stripe";
+import { Tenant } from "@/types/payload-extensions";
 
 export const onboardingRouter = createTRPCRouter({
   // Create business-specific Stripe Connect account
@@ -219,7 +220,7 @@ export const onboardingRouter = createTRPCRouter({
     const tenant = await ctx.db.findByID({
       collection: "tenants",
       id: userTenants[0].tenant as string,
-    });
+    }) as Tenant | null;
 
     if (!tenant) {
       return {

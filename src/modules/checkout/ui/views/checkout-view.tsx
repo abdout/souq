@@ -25,7 +25,7 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data, error, isLoading } = useQuery(
-    trpc.checkout.getBooks.queryOptions({
+    trpc.checkout.getItems.queryOptions({
       ids: bookIds,
     })
   );
@@ -65,7 +65,7 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   ]);
 
   useEffect(() => {
-    if (error?.data?.code === "NOT_FOUND") {
+    if ((error as any)?.data?.code === "NOT_FOUND") {
       clearCart();
       toast.warning("Invalid books found, cart cleared");
     }
@@ -81,7 +81,7 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
     );
   }
 
-  if (data?.totalDocs === 0) {
+  if ((data as any)?.totalDocs === 0) {
     return (
       <div className="lg:pt-16 pt-4 px-4 lg:px-12">
         <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
@@ -97,10 +97,10 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-16">
         <div className="lg:col-span-4">
           <div className="border rounded-md overflow-hidden bg-white">
-            {data?.docs.map((book, index) => (
+            {(data as any)?.docs.map((book: any, index: number) => (
               <CheckoutItem
                 key={book.id}
-                isLast={index === data.docs.length - 1}
+                isLast={index === (data as any).docs.length - 1}
                 imageUrl={book.image?.url}
                 name={book.name}
                 bookUrl={`${generateTenantURL(book.tenant.slug)}/books/${book.id}`}
@@ -115,8 +115,8 @@ export const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
 
         <div className="lg:col-span-3">
           <CheckoutSidebar
-            total={data?.totalPrice || 0}
-            onPurchase={() => purchase.mutate({ tenantSlug, bookIds })}
+            total={(data as any)?.totalPrice || 0}
+            onPurchase={() => purchase.mutate({ tenantSlug, itemIds: bookIds })}
             isCanceled={states.cancel}
             disabled={purchase.isPending}
           />

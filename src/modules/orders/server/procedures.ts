@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { sendMerchantOrderConfirmation, sendCustomerOrderConfirmation, sendOrderStatusUpdate } from "@/lib/email";
+import { Order, Tenant, Book, User } from "@/types/payload-extensions";
 
 export const ordersRouter = createTRPCRouter({
   // Calculate delivery fee based on distance and minimum order
@@ -42,7 +43,7 @@ export const ordersRouter = createTRPCRouter({
         });
       }
 
-      const merchantData = tenant.docs[0];
+      const merchantData = tenant.docs[0] as Tenant;
 
       // Check if merchant is active and accepting orders
       if (!merchantData.isActive) {
@@ -156,7 +157,7 @@ export const ordersRouter = createTRPCRouter({
         });
       }
 
-      const merchantData = tenant.docs[0];
+      const merchantData = tenant.docs[0] as Tenant;
 
       if (!merchantData.isActive) {
         throw new TRPCError({
@@ -194,7 +195,7 @@ export const ordersRouter = createTRPCRouter({
       // Check inventory availability
       const inventoryIssues = [];
       for (const orderItem of input.items) {
-        const item = itemDetails.docs.find(i => i.id === orderItem.itemId);
+        const item = itemDetails.docs.find(i => i.id === orderItem.itemId) as Book | undefined;
         if (item && item.trackInventory && item.inventory < orderItem.quantity) {
           inventoryIssues.push({
             itemName: item.name,
@@ -239,7 +240,7 @@ export const ordersRouter = createTRPCRouter({
         data: {
           name: `Order #${Date.now()}`,
           user: ctx.session.user.id,
-          item: input.items[0].itemId, // Primary item (legacy field)
+          item: input.items[0]?.itemId, // Primary item (legacy field)
           deliveryAddress: input.deliveryAddress,
           orderStatus: "pending",
           deliveryFee: deliveryFeeResult.fee,
@@ -248,19 +249,19 @@ export const ordersRouter = createTRPCRouter({
           orderType: input.orderType,
           stripeCheckoutSessionId: "", // Will be updated after payment
           stripeAccountId: merchantData.stripeAccountId,
-        },
+        } as any,
       });
 
       // Update inventory for tracked items
       for (const orderItem of input.items) {
-        const item = itemDetails.docs.find(i => i.id === orderItem.itemId);
+        const item = itemDetails.docs.find(i => i.id === orderItem.itemId) as Book | undefined;
         if (item && item.trackInventory) {
           await ctx.db.update({
             collection: "items",
             id: item.id,
             data: {
               inventory: item.inventory - orderItem.quantity,
-            },
+            } as any,
           });
         }
       }
@@ -271,7 +272,7 @@ export const ordersRouter = createTRPCRouter({
           const user = await ctx.db.findByID({
             collection: "users",
             id: ctx.session.user.id,
-          });
+          }) as User;
 
           const emailData = {
             orderId: order.id,

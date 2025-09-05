@@ -1,7 +1,8 @@
 import z from "zod";
 import { TRPCError } from "@trpc/server";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { Media, Tenant } from "@/payload-types";
+import { Media } from "@/payload-types";
+import { Tenant } from "@/types/payload-extensions";
 
 export const tenantsRouter = createTRPCRouter({
   getOne: baseProcedure

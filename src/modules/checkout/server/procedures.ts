@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { Media, Tenant } from "@/payload-types";
+import { Media } from "@/payload-types";
+import { Tenant, Book, Order } from "@/types/payload-extensions";
 import {
   baseProcedure,
   createTRPCRouter,

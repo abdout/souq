@@ -13,7 +13,14 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)",
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm payload generate:types:*)",
+      "Bash(npx payload generate:types)",
+      "Bash(dir)",
+      "Bash(set NODE_ENV=production)",
+      "Bash(pnpm next:*)"
     ],
     "deny": [],
     "ask": []
