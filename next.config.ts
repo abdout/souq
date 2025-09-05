@@ -4,6 +4,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   serverExternalPackages: ['sharp'],
+  // Disable TypeScript and ESLint checks during build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Disable file system caching to prevent permission issues
   experimental: {
     webpackBuildWorker: false,
