@@ -1,4 +1,4 @@
-import { authRouter } from "@/modules/auth/server/procedures";
+import { authRouter } from "@/modules/auth/server/procedures-prisma";
 import { createTRPCRouter } from "../init";
 import { categoriesRouter } from "@/modules/categories/server/procedures";
 import { booksRouter } from "@/modules/books/server/procedures-prisma";
