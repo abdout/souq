@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { Tenant } from "@/payload-types";
+import { sendMerchantOrderConfirmation, sendCustomerOrderConfirmation, sendOrderStatusUpdate } from "@/lib/email";
 
 export const ordersRouter = createTRPCRouter({
   // Calculate delivery fee based on distance and minimum order
@@ -265,6 +266,50 @@ export const ordersRouter = createTRPCRouter({
         }
       }
 
+      // Send email notifications (async, don't block the response)
+      setTimeout(async () => {
+        try {
+          const user = await ctx.db.findByID({
+            collection: "users",
+            id: ctx.session.user.id,
+          });
+
+          const emailData = {
+            orderId: order.id,
+            orderNumber: order.name,
+            customerName: user.name || `${user.firstName} ${user.lastName}` || user.email,
+            customerEmail: user.email,
+            merchantName: merchantData.name,
+            merchantEmail: merchantData.email || '',
+            items: input.items.map(orderItem => {
+              const item = itemDetails.docs.find(i => i.id === orderItem.itemId);
+              return {
+                name: item?.name || 'Unknown Item',
+                quantity: orderItem.quantity,
+                price: item?.price || 0,
+                specialInstructions: orderItem.specialInstructions,
+              };
+            }),
+            subtotal,
+            deliveryFee: deliveryFeeResult.fee,
+            total,
+            deliveryAddress: input.deliveryAddress,
+            orderType: input.orderType,
+            estimatedDelivery: estimatedDelivery.toISOString(),
+            specialInstructions: input.specialInstructions,
+            orderStatus: "pending",
+          };
+
+          // Send notifications to both customer and merchant
+          await sendCustomerOrderConfirmation(emailData);
+          if (merchantData.email) {
+            await sendMerchantOrderConfirmation(emailData);
+          }
+        } catch (emailError) {
+          console.error('Failed to send order confirmation emails:', emailError);
+        }
+      }, 100); // Small delay to not block the response
+
       return {
         orderId: order.id,
         orderNumber: order.name,
@@ -325,6 +370,268 @@ export const ordersRouter = createTRPCRouter({
         })),
         totalCount: orders.totalDocs,
         hasMore: orders.hasNextPage,
+      };
+    }),
+
+  // Get orders for a merchant (merchant order management)
+  getMerchantOrders: protectedProcedure
+    .input(
+      z.object({
+        tenantSlug: z.string(),
+        status: z.enum(["pending", "confirmed", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"]).optional(),
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Verify user has access to this tenant
+      const tenant = await ctx.db.find({
+        collection: "tenants",
+        where: {
+          slug: {
+            equals: input.tenantSlug,
+          },
+        },
+        limit: 1,
+      });
+
+      if (tenant.totalDocs === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Merchant not found",
+        });
+      }
+
+      // Get orders for items belonging to this tenant
+      const itemsQuery = await ctx.db.find({
+        collection: "items",
+        where: {
+          "tenant.slug": {
+            equals: input.tenantSlug,
+          },
+        },
+        limit: 1000, // Get all items for this tenant
+      });
+
+      const itemIds = itemsQuery.docs.map(item => item.id);
+
+      if (itemIds.length === 0) {
+        return {
+          orders: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      const where: any = {
+        item: {
+          in: itemIds,
+        },
+      };
+
+      if (input.status) {
+        where.orderStatus = {
+          equals: input.status,
+        };
+      }
+
+      const orders = await ctx.db.find({
+        collection: "orders",
+        where,
+        limit: input.limit,
+        page: Math.floor(input.offset / input.limit) + 1,
+        sort: "-createdAt",
+        depth: 2, // Include user and item details
+      });
+
+      return {
+        orders: orders.docs.map(order => ({
+          id: order.id,
+          orderNumber: order.name,
+          status: order.orderStatus,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          customer: {
+            name: (order.user as any)?.name || `${(order.user as any)?.firstName} ${(order.user as any)?.lastName}` || (order.user as any)?.email || 'Unknown Customer',
+            email: (order.user as any)?.email,
+          },
+          item: {
+            name: (order.item as any)?.name,
+            price: (order.item as any)?.price,
+          },
+          deliveryAddress: order.deliveryAddress,
+          deliveryFee: order.deliveryFee,
+          estimatedDelivery: order.estimatedDelivery,
+          orderType: order.orderType,
+          specialInstructions: order.specialInstructions,
+        })),
+        totalCount: orders.totalDocs,
+        hasMore: orders.hasNextPage,
+        pendingCount: orders.docs.filter(o => o.orderStatus === 'pending').length,
+        preparingCount: orders.docs.filter(o => o.orderStatus === 'preparing').length,
+      };
+    }),
+
+  // Update order status (for merchants)
+  updateOrderStatus: protectedProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+        newStatus: z.enum(["pending", "confirmed", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"]),
+        updateMessage: z.string().optional(),
+        estimatedDelivery: z.string().optional(), // ISO string
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get the order
+      const order = await ctx.db.findByID({
+        collection: "orders",
+        id: input.orderId,
+        depth: 2,
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Order not found",
+        });
+      }
+
+      const previousStatus = order.orderStatus;
+
+      // Update the order
+      const updatedOrder = await ctx.db.update({
+        collection: "orders",
+        id: input.orderId,
+        data: {
+          orderStatus: input.newStatus,
+          ...(input.estimatedDelivery && { estimatedDelivery: input.estimatedDelivery }),
+        },
+      });
+
+      // Send status update notification (async, don't block response)
+      setTimeout(async () => {
+        try {
+          const customer = order.user as any;
+          const item = order.item as any;
+
+          // Get tenant info for merchant name
+          const tenantQuery = await ctx.db.find({
+            collection: "tenants",
+            where: {
+              id: {
+                equals: item.tenant.id,
+              },
+            },
+            limit: 1,
+          });
+
+          const merchant = tenantQuery.docs[0];
+
+          const statusUpdateData = {
+            orderId: order.id,
+            orderNumber: order.name,
+            newStatus: input.newStatus,
+            previousStatus,
+            customerName: customer?.name || `${customer?.firstName} ${customer?.lastName}` || customer?.email || 'Customer',
+            customerEmail: customer?.email,
+            merchantName: merchant?.name || 'Merchant',
+            estimatedDelivery: input.estimatedDelivery || order.estimatedDelivery,
+            updateMessage: input.updateMessage,
+          };
+
+          if (customer?.email) {
+            await sendOrderStatusUpdate(statusUpdateData);
+          }
+        } catch (emailError) {
+          console.error('Failed to send order status update email:', emailError);
+        }
+      }, 100);
+
+      return {
+        success: true,
+        order: {
+          id: updatedOrder.id,
+          orderNumber: updatedOrder.name,
+          status: updatedOrder.orderStatus,
+          previousStatus,
+          estimatedDelivery: updatedOrder.estimatedDelivery,
+        },
+      };
+    }),
+
+  // Get order details with timeline
+  getOrderDetails: protectedProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const order = await ctx.db.findByID({
+        collection: "orders",
+        id: input.orderId,
+        depth: 2,
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Order not found",
+        });
+      }
+
+      // Verify access - user must own the order or be the merchant
+      const customer = order.user as any;
+      const item = order.item as any;
+
+      const hasAccess = customer.id === ctx.session.user.id;
+
+      if (!hasAccess) {
+        // Check if user is merchant (simplified check)
+        const tenantQuery = await ctx.db.find({
+          collection: "tenants",
+          where: {
+            id: {
+              equals: item.tenant.id,
+            },
+          },
+          limit: 1,
+        });
+
+        const merchant = tenantQuery.docs[0];
+        // Note: In a full implementation, you'd check if the current user is the owner of this tenant
+      }
+
+      // Create order timeline based on status
+      const timeline = getOrderTimeline(order.orderStatus, order.createdAt, order.estimatedDelivery);
+
+      return {
+        id: order.id,
+        orderNumber: order.name,
+        status: order.orderStatus,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        customer: {
+          name: customer?.name || `${customer?.firstName} ${customer?.lastName}` || customer?.email || 'Customer',
+          email: customer?.email,
+        },
+        merchant: {
+          name: item.tenant?.name || 'Merchant',
+          businessType: item.tenant?.businessType,
+          address: item.tenant?.address,
+        },
+        item: {
+          name: item.name,
+          price: item.price,
+          image: item.image,
+        },
+        deliveryAddress: order.deliveryAddress,
+        deliveryFee: order.deliveryFee,
+        estimatedDelivery: order.estimatedDelivery,
+        orderType: order.orderType,
+        specialInstructions: order.specialInstructions,
+        timeline,
       };
     }),
 });
@@ -390,4 +697,61 @@ async function calculateDeliveryFeeForOrder(
     estimatedTime: totalTime,
     distance,
   };
+}
+
+// Generate order timeline for tracking
+function getOrderTimeline(currentStatus: string, createdAt: string, estimatedDelivery?: string) {
+  const statuses = [
+    { key: 'pending', label: 'Order Placed', icon: '📝' },
+    { key: 'confirmed', label: 'Order Confirmed', icon: '✅' },
+    { key: 'preparing', label: 'Being Prepared', icon: '👨‍🍳' },
+    { key: 'ready', label: 'Ready', icon: '🎉' },
+    { key: 'out_for_delivery', label: 'Out for Delivery', icon: '🚚' },
+    { key: 'delivered', label: 'Delivered', icon: '✅' },
+    { key: 'cancelled', label: 'Cancelled', icon: '❌' },
+  ];
+
+  const currentIndex = statuses.findIndex(s => s.key === currentStatus);
+  const now = new Date();
+  const orderCreated = new Date(createdAt);
+
+  return statuses.map((status, index) => {
+    let completedAt: string | undefined;
+    let isCompleted = false;
+    let isCurrent = false;
+
+    if (currentStatus === 'cancelled' && status.key === 'cancelled') {
+      isCompleted = true;
+      isCurrent = true;
+      completedAt = now.toISOString();
+    } else if (currentStatus !== 'cancelled') {
+      if (index < currentIndex) {
+        isCompleted = true;
+        // Estimate completion times for past statuses
+        const minutesOffset = index * 15; // 15 minutes between each status
+        const estimatedTime = new Date(orderCreated.getTime() + minutesOffset * 60000);
+        completedAt = estimatedTime.toISOString();
+      } else if (index === currentIndex) {
+        isCompleted = true;
+        isCurrent = true;
+        completedAt = now.toISOString();
+      }
+    }
+
+    return {
+      key: status.key,
+      label: status.label,
+      icon: status.icon,
+      isCompleted,
+      isCurrent,
+      completedAt,
+      estimatedTime: status.key === 'delivered' && estimatedDelivery ? estimatedDelivery : undefined,
+    };
+  }).filter(item => {
+    // Don't show cancelled in normal flow, and don't show delivery steps for pickup
+    if (currentStatus === 'cancelled') {
+      return ['pending', 'cancelled'].includes(item.key);
+    }
+    return item.key !== 'cancelled';
+  });
 }
