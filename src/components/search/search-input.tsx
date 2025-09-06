@@ -34,7 +34,7 @@ export const SearchInput = ({ disabled, defaultValue, onChange }: Props) => {
       <div className="relative w-full">
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
         <Input
-          className="pl-8 bg-gray-"
+          className="pl-8 bg-black/90 border-black/90 hover:border-white/20 active:border-2 active:border-white/20 rounded-3xl"
           placeholder="Search"
           disabled={disabled}
           value={searchValue}

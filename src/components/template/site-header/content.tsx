@@ -6,14 +6,16 @@ import { cn } from "@/lib/utils";
 import { Poppins } from "next/font/google";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { NavbarSidebar } from "./navbar-sidebar";
+
 import { MenuIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { useTRPC } from "@/trpc/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Image from "next/image";
-import { SearchFilters } from "./search-filters/search";
+import { SiteSidebar } from "../site-sidebar/content";
+import { SearchFilters } from "@/components/search/content";
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -49,7 +51,7 @@ const navbarItems = [
   { href: "/contact", children: "Contact" },
 ];
 
-export const Navbar = () => {
+export const SiteHeader = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -101,7 +103,7 @@ export const Navbar = () => {
         </Link>
         <SearchFilters />
       </div>
-      <NavbarSidebar
+      <SiteSidebar
         items={navbarItems}
         open={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}

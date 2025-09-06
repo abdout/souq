@@ -1,6 +1,8 @@
 import superjson from "superjson";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { cache } from "react";
+import { getPayload } from "payload";
+import config from "@payload-config";
 
 export const createTRPCContext = cache(async () => {
   /**
@@ -22,8 +24,14 @@ const t = initTRPC.create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure.use(async ({ next }) => {
-  // We're using Prisma now, not Payload
-  return next({ ctx: {} });
+  // Get Payload instance for database operations
+  const payload = await getPayload({ config });
+  
+  return next({ 
+    ctx: {
+      db: payload
+    }
+  });
 });
 
 export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
@@ -33,6 +41,7 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
+      db: ctx.db,
       session: {
         user: null, // No authentication for now
       },
