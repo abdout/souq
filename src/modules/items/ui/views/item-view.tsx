@@ -122,7 +122,7 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                 <div className="flex flex-row items-center gap-2">
                   <CartButton
                     isPurchased={data.isPurchased}
-                    bookId={bookId}
+                    bookId={itemId}
                     tenantSlug={tenantSlug}
                   />
                   <Button

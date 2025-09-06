@@ -42,14 +42,14 @@ export const IntegratedSearchBar = ({ defaultValue, onChange, disabled = false }
 
   return (
     <form onSubmit={handleSearch} className="flex items-center w-full max-w-2xl">
-      <div className="flex items-center bg-[#333333] rounded-full w-full border border-transparent hover:border-white/20 focus-within:border-white/40 transition-colors">
+      <div className="flex items-center bg-[#333333] rounded-full w-full border border-transparent hover:border-white focus-within:border-white focus-within:border-2 transition-all">
         {/* Category Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               disabled={disabled}
-              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none border-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-medium">{selectedCategory}</span>
               <ChevronDownIcon className="h-4 w-4" />
@@ -103,7 +103,7 @@ export const IntegratedSearchBar = ({ defaultValue, onChange, disabled = false }
           type="button"
           variant="ghost"
           disabled={disabled}
-          className="p-3 text-white hover:bg-[#444444] rounded-r-full rounded-l-none disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-3 text-white hover:bg-[#444444] rounded-r-full rounded-l-none border-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <MicIcon className="h-4 w-4" />
         </Button>

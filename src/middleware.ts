@@ -33,6 +33,14 @@ export default async function middleware(req: NextRequest) {
     if (tenantSlug === "www") {
       return NextResponse.next();
     }
+    
+    // Don't rewrite API routes - they should always go to the main API
+    if (url.pathname.startsWith('/api/') || 
+        url.pathname.startsWith('/_next/') ||
+        url.pathname.startsWith('/media/')) {
+      return NextResponse.next();
+    }
+    
     return NextResponse.rewrite(
       new URL(`/tenants/${tenantSlug}${url.pathname}`, req.url)
     );

@@ -9,7 +9,10 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm prisma generate:*)",
       "Bash(taskkill:*)",
-      "Bash(pnpm prisma migrate:*)"
+      "Bash(pnpm prisma migrate:*)",
+      "Bash(pnpm next:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
