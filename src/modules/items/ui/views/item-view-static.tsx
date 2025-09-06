@@ -15,7 +15,7 @@ const MOCK_ITEM = {
   name: "Delicious Burger",
   description: "A tasty burger with fresh ingredients",
   price: 25.99,
-  image: "/placeholder.png",
+  image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE4IiBmaWxsPSIjY2NjIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5EZWxpY2lvdXMgQnVyZ2VyPC90ZXh0Pjwvc3ZnPg==",
   deliveryTime: "30",
   reviewRating: 4.5,
   reviewCount: 12,
@@ -25,7 +25,12 @@ const MOCK_ITEM = {
   }
 };
 
-export const StaticItemView = () => {
+interface Props {
+  itemId?: string;
+  slug?: string;
+}
+
+export const StaticItemView = ({ itemId, slug }: Props) => {
   const [isCopied, setIsCopied] = useState(false);
   const item = MOCK_ITEM;
 
