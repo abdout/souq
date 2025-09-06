@@ -12,7 +12,6 @@ import { Fragment, useState } from "react";
 
 //import { CartButton } from "../components/cart-button";
 import { Progress } from "@/components/ui/progress";
-import { RichText } from "@payloadcms/richtext-lexical/react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 
@@ -108,7 +107,7 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
             </div>
             <div className="p-6">
               {data.description ? (
-                <RichText data={data.description} />
+                <p className="text-base">{data.description}</p>
               ) : (
                 <p className="font-medium text-muted-foreground italic">
                   No description provided
@@ -142,9 +141,7 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                   </Button>
                 </div>
                 <p className="text-center font-medium">
-                  {data.refundPolicy === "no-refunds"
-                    ? "No refunds"
-                    : `${data.refundPolicy} money back guarantee`}
+                  {data.deliveryTime ? `Delivery in ${data.deliveryTime} minutes` : "Standard delivery"}
                 </p>
               </div>
               <div className="p-6">
@@ -157,20 +154,26 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                   </div>
                 </div>
                 <div className="grid grid-cols-[auto_1fr_auto] gap-3 mt-4">
-                  {[5, 4, 3, 2, 1].map((stars) => (
-                    <Fragment key={stars}>
-                      <div className="font-medium">
-                        {stars} {stars === 1 ? "star" : "stars"}
-                      </div>
-                      <Progress
-                        value={data.ratingDistribution[stars]}
-                        className="h-[1lh]"
-                      />
-                      <div className="font-medium">
-                        {data.ratingDistribution[stars]}%
-                      </div>
-                    </Fragment>
-                  ))}
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    // Calculate rating distribution from reviews if available
+                    const reviewsWithThisRating = data.reviews?.filter(r => Math.round(r.rating) === stars).length || 0;
+                    const percentage = data.reviewCount > 0 ? Math.round((reviewsWithThisRating / data.reviewCount) * 100) : 0;
+                    
+                    return (
+                      <Fragment key={stars}>
+                        <div className="font-medium">
+                          {stars} {stars === 1 ? "star" : "stars"}
+                        </div>
+                        <Progress
+                          value={percentage}
+                          className="h-[1lh]"
+                        />
+                        <div className="font-medium">
+                          {percentage}%
+                        </div>
+                      </Fragment>
+                    );
+                  })}
                 </div>
               </div>
             </div>
