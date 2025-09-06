@@ -24,8 +24,12 @@ function getQueryClient() {
 }
 function getUrl() {
   const base = (() => {
-    if (typeof window !== "undefined") return "";
-    return process.env.NEXT_PUBLIC_APP_URL;
+    if (typeof window !== "undefined") {
+      // In the browser, use the current origin to ensure proper protocol and domain
+      return window.location.origin;
+    }
+    // On the server, use the configured app URL
+    return process.env.NEXT_PUBLIC_APP_URL || "";
   })();
   return `${base}/api/trpc`;
 }

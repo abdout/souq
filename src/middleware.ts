@@ -20,8 +20,19 @@ export default async function middleware(req: NextRequest) {
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "";
 
+  // Handle www.abdoutgroup.com as the main domain, not a tenant
+  if (hostname === `www.${rootDomain}` || hostname === rootDomain) {
+    // Let it pass through to the main app routes
+    return NextResponse.next();
+  }
+
+  // Handle tenant subdomains
   if (hostname.endsWith(`.${rootDomain}`)) {
     const tenantSlug = hostname.replace(`.${rootDomain}`, "");
+    // Ignore 'www' as a tenant slug
+    if (tenantSlug === "www") {
+      return NextResponse.next();
+    }
     return NextResponse.rewrite(
       new URL(`/tenants/${tenantSlug}${url.pathname}`, req.url)
     );
