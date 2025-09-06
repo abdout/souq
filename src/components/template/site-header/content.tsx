@@ -86,12 +86,12 @@ export const SiteHeader = () => {
   };
 
   return (
-    <nav className="h-16 flex items-center justify-between font-medium bg-[#1A1A1A] border-b border-[#99CC33] px-6">
+    <nav className="h-16 flex items-center justify-between font-medium bg-[#1A1A1A] border-b border-primary px-6">
       {/* Logo and Search Bar */}
       <div className="flex items-center gap-6 flex-1">
         <Link href="/" className="flex items-center gap-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
-            <path fill="#99CC33" fillRule="evenodd" d="M5.174 3h5.652a1.5 1.5 0 0 1 1.49 1.328l.808 7A1.5 1.5 0 0 1 11.634 13H4.366a1.5 1.5 0 0 1-1.49-1.672l.808-7A1.5 1.5 0 0 1 5.174 3m-2.98 1.156A3 3 0 0 1 5.174 1.5h5.652a3 3 0 0 1 2.98 2.656l.808 7a3 3 0 0 1-2.98 3.344H4.366a3 3 0 0 1-2.98-3.344zM5 5.25a.75.75 0 0 1 1.5 0v.25a1.5 1.5 0 1 0 3 0v-.25a.75.75 0 0 1 1.5 0v.25a3 3 0 0 1-6 0z" clipRule="evenodd"/>
+            <path fill="hsl(83.7 80.5% 44.3%)" fillRule="evenodd" d="M5.174 3h5.652a1.5 1.5 0 0 1 1.49 1.328l.808 7A1.5 1.5 0 0 1 11.634 13H4.366a1.5 1.5 0 0 1-1.49-1.672l.808-7A1.5 1.5 0 0 1 5.174 3m-2.98 1.156A3 3 0 0 1 5.174 1.5h5.652a3 3 0 0 1 2.98 2.656l.808 7a3 3 0 0 1-2.98 3.344H4.366a3 3 0 0 1-2.98-3.344zM5 5.25a.75.75 0 0 1 1.5 0v.25a1.5 1.5 0 1 0 3 0v-.25a.75.75 0 0 1 1.5 0v.25a3 3 0 0 1-6 0z" clipRule="evenodd"/>
           </svg>
           <span className={cn("text-xl font-bold text-[#F5F5F5]", poppins.className)}>
             Souq
@@ -136,7 +136,7 @@ export const SiteHeader = () => {
             </Button>
             <Button
               asChild
-              className="px-6 py-2 rounded-md bg-[#99CC33] text-[#1A1A1A] hover:bg-[#87E64B] transition-colors text-sm font-medium"
+              className="px-6 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
             >
               <Link prefetch href="/sign-up">
                 Get unlimited downloads

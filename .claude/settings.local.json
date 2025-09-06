@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(do mv \"$f\" \"$f//book-/item-\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm dev:*)",
+      "Bash(curl:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

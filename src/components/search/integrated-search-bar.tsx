@@ -47,7 +47,7 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none border-r border-[#555555]"
+              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none"
             >
               <span className="text-sm font-medium">{selectedCategory}</span>
               <ChevronDownIcon className="h-4 w-4" />
@@ -75,6 +75,9 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Vertical Separator */}
+        <div className="h-6 w-px bg-[#555555] my-2"></div>
+
         {/* Search Input */}
         <div className="flex items-center flex-1 px-4">
           <SearchIcon className="h-4 w-4 text-white mr-3" />
@@ -88,6 +91,9 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
             className="bg-transparent border-none text-white placeholder:text-[#888888] focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
           />
         </div>
+
+        {/* Vertical Separator */}
+        <div className="h-6 w-px bg-[#555555] my-2"></div>
 
         {/* Microphone Icon */}
         <Button

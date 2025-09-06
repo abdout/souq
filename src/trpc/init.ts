@@ -1,8 +1,6 @@
 import superjson from "superjson";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { cache } from "react";
-import { getPayload } from "payload";
-import config from "@payload-config";
 
 export const createTRPCContext = cache(async () => {
   /**
@@ -24,20 +22,15 @@ const t = initTRPC.create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure.use(async ({ next }) => {
-  // Get Payload instance for database operations
-  try {
-    const payload = await getPayload({ config });
-    console.log("[baseProcedure] Payload instance created successfully");
-    
-    return next({ 
-      ctx: {
-        db: payload
-      }
-    });
-  } catch (error) {
-    console.error("[baseProcedure] Failed to create Payload instance:", error);
-    throw error;
-  }
+  // Skip Payload initialization since we're using Prisma for most operations
+  // The Payload instance is only needed for specific admin operations
+  console.log("[baseProcedure] Using Prisma for database operations");
+  
+  return next({ 
+    ctx: {
+      // db field removed - procedures will use prisma directly
+    }
+  });
 });
 
 export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
@@ -47,7 +40,6 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      db: ctx.db,
       session: {
         user: null, // No authentication for now
       },
