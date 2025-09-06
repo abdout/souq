@@ -8,10 +8,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 
 //import { CartButton } from "../components/cart-button";
-import { Progress } from "@/components/ui/progress";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 
@@ -154,31 +153,17 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                   <h3 className="text-xl font-medium">Ratings</h3>
                   <div className="flex items-center gap-x-1 font-medium">
                     <StarIcon className="size-4 fill-black" />
-                    <p>({data.reviewRating})</p>
-                    <p className="text-base">{data.reviewCount} ratings</p>
+                    <p>({data?.reviewRating || 0})</p>
+                    <p className="text-base">{data?.reviewCount || 0} ratings</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-[auto_1fr_auto] gap-3 mt-4">
-                  {[5, 4, 3, 2, 1].map((stars) => {
-                    // Calculate rating distribution from reviews if available
-                    const reviewsWithThisRating = data?.reviews?.filter?.(r => r && Math.round(r.rating) === stars)?.length || 0;
-                    const percentage = (data?.reviewCount || 0) > 0 ? Math.round((reviewsWithThisRating / (data.reviewCount || 1)) * 100) : 0;
-                    
-                    return (
-                      <Fragment key={stars}>
-                        <div className="font-medium">
-                          {stars} {stars === 1 ? "star" : "stars"}
-                        </div>
-                        <Progress
-                          value={percentage}
-                          className="h-[1lh]"
-                        />
-                        <div className="font-medium">
-                          {percentage}%
-                        </div>
-                      </Fragment>
-                    );
-                  })}
+                {/* Temporarily simplified rating distribution */}
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {data?.reviewCount > 0 ? (
+                    <p>Based on {data.reviewCount} customer reviews</p>
+                  ) : (
+                    <p>No reviews yet. Be the first to review!</p>
+                  )}
                 </div>
               </div>
             </div>
