@@ -35,16 +35,12 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
   console.log(`[ItemView] Rendering with itemId: ${itemId}, tenantSlug: ${tenantSlug}`);
   
   const trpc = useTRPC();
-  const { data, error } = useSuspenseQuery(
+  // useSuspenseQuery doesn't have an error property - it throws instead
+  const { data } = useSuspenseQuery(
     trpc.items.getOne.queryOptions({ id: itemId })
   );
 
   const [isCopied, setIsCopied] = useState(false);
-  
-  // Log any errors
-  if (error) {
-    console.error(`[ItemView] Error fetching item:`, error);
-  }
   
   // Log data received
   console.log(`[ItemView] Data received:`, data);
@@ -60,8 +56,10 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
       <div className="border rounded-sm bg-white overflow-hidden">
         <div className="relative aspect-[3.9] border-b">
           <Image
-            src={data.image?.url || "/placeholder.png"}
-            alt={data.name}
+            src={(data.image && typeof data.image === 'object' && data.image.url) || 
+                 (typeof data.image === 'string' && data.image) || 
+                 "/placeholder.png"}
+            alt={data.name || "Item"}
             fill
             className="object-cover"
           />
@@ -85,9 +83,13 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                   href={generateTenantURL(tenantSlug)}
                   className="flex items-center gap-2"
                 >
-                  {data.tenant?.image?.url && (
+                  {data.tenant && data.tenant.image && (
                     <Image
-                      src={data.tenant.image.url}
+                      src={typeof data.tenant.image === 'object' && data.tenant.image.url 
+                           ? data.tenant.image.url 
+                           : typeof data.tenant.image === 'string' 
+                           ? data.tenant.image 
+                           : "/placeholder.png"}
                       alt={data.tenant?.name || "Store"}
                       width={20}
                       height={20}
