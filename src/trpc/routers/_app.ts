@@ -3,7 +3,7 @@ import { createTRPCRouter } from "../init";
 import { categoriesRouter } from "@/modules/categories/server/procedures";
 import { itemsRouter } from "@/modules/items/server/procedures-prisma";
 import { tagsRouter } from "@/modules/tags/server/procedures";
-import { tenantsRouter } from "@/modules/tenants/server/procedures";
+import { tenantsRouter } from "@/modules/tenants/server/procedures-prisma";
 import { checkoutRouter } from "@/modules/checkout/server/procedures";
 import { libraryRouter } from "@/modules/library/server/procedures";
 import { reviewsRouter } from "@/modules/reviews/server/procedures";

@@ -8,7 +8,8 @@
       "Bash(curl:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm prisma generate:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(pnpm prisma migrate:*)"
     ],
     "deny": [],
     "ask": []

@@ -37,8 +37,14 @@ export const itemsRouter = createTRPCRouter({
         ? item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length
         : 0;
 
+      // Format the response to match the expected structure
       return {
         ...item,
+        image: item.image ? { url: item.image } : null,
+        tenant: {
+          ...item.tenant,
+          image: item.tenant.image ? { url: item.tenant.image } : null,
+        },
         reviewRating,
         reviewCount: item.reviews.length,
         isPurchased: false, // TODO: Check if user has purchased
@@ -129,12 +135,15 @@ export const itemsRouter = createTRPCRouter({
         slug: item.slug,
         description: item.description,
         price: item.price,
-        image: item.image,
+        image: item.image ? { url: item.image } : null,
         businessType: item.businessType,
         inventory: item.inventory,
         isActive: item.isActive,
         isFeatured: item.isFeatured,
-        tenant: item.tenant,
+        tenant: {
+          ...item.tenant,
+          image: item.tenant.image ? { url: item.tenant.image } : null,
+        },
         category: item.category,
         reviewCount: item._count.reviews,
         createdAt: item.createdAt.toISOString(),

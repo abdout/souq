@@ -86,7 +86,8 @@ export const SiteHeader = () => {
   };
 
   return (
-    <nav className="h-16 flex items-center justify-between font-medium bg-[#1A1A1A] border-b border-primary px-6">
+    <>
+      <nav className="h-16 flex items-center justify-between font-medium bg-[#1A1A1A] border-b border-primary px-6">
       {/* Logo and Search Bar */}
       <div className="flex items-center gap-6 flex-1">
         <Link href="/" className="flex items-center gap-3">
@@ -112,14 +113,14 @@ export const SiteHeader = () => {
           <>
             <Button
               asChild
-              className="hidden lg:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium"
+              className="hidden lg:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium border-0"
             >
               <Link href="/admin">Dashboard</Link>
             </Button>
             <Button
               onClick={handleLogout}
               disabled={isPending}
-              className="hidden lg:flex px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition-colors text-sm font-medium"
+              className="hidden lg:flex px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition-colors text-sm font-medium border-0"
             >
               {isPending ? "Logging out..." : "Logout"}
             </Button>
@@ -128,7 +129,7 @@ export const SiteHeader = () => {
           <>
             <Button
               asChild
-              className="hidden xl:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium"
+              className="hidden xl:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium border-0"
             >
               <Link prefetch href="/sign-in">
                 Log in
@@ -136,7 +137,7 @@ export const SiteHeader = () => {
             </Button>
             <Button
               asChild
-              className="px-6 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+              className="px-6 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium border-0"
             >
               <Link prefetch href="/sign-up">
                 Get unlimited downloads
@@ -148,7 +149,7 @@ export const SiteHeader = () => {
         {/* Hamburger Menu */}
         <Button
           variant="ghost"
-          className="p-2 text-white hover:bg-[#333333] rounded-md"
+          className="p-2 text-white hover:bg-[#333333] rounded-md border-0"
           onClick={() => setIsSidebarOpen(true)}
         >
           <MenuIcon className="h-5 w-5" />
@@ -163,6 +164,29 @@ export const SiteHeader = () => {
         onLogout={handleLogout}
         isLoggingOut={isPending}
       />
-    </nav>
+      </nav>
+
+      {/* Promotional Banner */}
+      <div className="bg-primary px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-black uppercase tracking-wide">
+              GET UNLIMITED VIDEO GENERATIONS
+            </h2>
+            <span className="text-lg text-black font-medium">
+              Until Sept 30.
+            </span>
+          </div>
+          <Button
+            asChild
+            className="px-6 py-3 bg-black text-white hover:bg-gray-800 transition-colors rounded-md border-0 font-medium"
+          >
+            <Link href="/sign-up">
+              Start now
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </>
   );
 };

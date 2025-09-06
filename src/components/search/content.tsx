@@ -7,7 +7,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { BreadcrumbNavigation } from "./breadcrumbs-navigation";
 import { Categories } from "./categories";
-import { SearchInput } from "./search-input";
+import { IntegratedSearchBar } from "./integrated-search-bar";
 
 export const SearchFilters = () => {
   const trpc = useTRPC();
@@ -35,7 +35,7 @@ export const SearchFilters = () => {
         backgroundColor: activeCategoryColor,
       }}
     >
-      <SearchInput
+      <IntegratedSearchBar
         defaultValue={filters.search}
         onChange={(value) => setFilters({ search: value })}
       />
@@ -60,7 +60,7 @@ export const SearchFiltersSkeleton = () => {
         backgroundColor: "#F5F5F5",
       }}
     >
-      <SearchInput disabled onChange={() => {}} />
+      <IntegratedSearchBar disabled onChange={() => {}} />
       <div className="hidden lg:block">
         <div className="h-11" />
       </div>

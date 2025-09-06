@@ -17,9 +17,10 @@ import { useRouter } from "next/navigation";
 interface Props {
   defaultValue?: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
+export const IntegratedSearchBar = ({ defaultValue, onChange, disabled = false }: Props) => {
   const [searchValue, setSearchValue] = useState(defaultValue || "");
   const [selectedCategory, setSelectedCategory] = useState("All Items");
   const router = useRouter();
@@ -47,7 +48,8 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none"
+              disabled={disabled}
+              className="flex items-center gap-2 px-4 py-3 text-[#CCCCCC] hover:text-white hover:bg-transparent rounded-l-full rounded-r-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-sm font-medium">{selectedCategory}</span>
               <ChevronDownIcon className="h-4 w-4" />
@@ -88,7 +90,8 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
               onChange(e.target.value);
             }}
             placeholder="Search"
-            className="bg-transparent border-none text-white placeholder:text-[#888888] focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+            disabled={disabled}
+            className="bg-transparent border-none text-white placeholder:text-[#888888] focus-visible:ring-0 focus-visible:ring-offset-0 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
@@ -99,7 +102,8 @@ export const IntegratedSearchBar = ({ defaultValue, onChange }: Props) => {
         <Button
           type="button"
           variant="ghost"
-          className="p-3 text-white hover:bg-[#444444] rounded-r-full rounded-l-none"
+          disabled={disabled}
+          className="p-3 text-white hover:bg-[#444444] rounded-r-full rounded-l-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <MicIcon className="h-4 w-4" />
         </Button>
