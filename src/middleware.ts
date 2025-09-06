@@ -4,20 +4,27 @@ export const config = {
   matcher: [
     /*
      * Match all paths except for:
-     * 1. /api routes
-     * 2. /_next (Next.js internals)
-     * 3. /_static (inside /public)
-     * 4. all root files inside /public (e.g. /favicon.ico)
+     * 1. /_next (Next.js internals)
+     * 2. /_static (inside /public)
+     * 3. all root files inside /public (e.g. /favicon.ico)
+     * Note: We now handle /api routes inside the middleware
      */
-    "/((?!api/|_next/|_static/|_vercel|media/|[\w-]+\.\w+).*)",
+    "/((?!_next/|_static/|_vercel|[\w-]+\.\w+).*)",
   ],
 };
 
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
-  // Extract the hostname (e.g., "hien.lexi.com" or "hien.localhost:3000")
+  const pathname = url.pathname;
+  
+  // ALWAYS skip API routes, media files, and Next.js internals
+  if (pathname.startsWith('/api/') || 
+      pathname.startsWith('/media/')) {
+    return NextResponse.next();
+  }
+  
+  // Extract the hostname (e.g., "delicious-bites.abdoutgroup.com")
   const hostname = req.headers.get("host") || "";
-
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "";
 
   // Handle www.abdoutgroup.com as the main domain, not a tenant
@@ -29,20 +36,15 @@ export default async function middleware(req: NextRequest) {
   // Handle tenant subdomains
   if (hostname.endsWith(`.${rootDomain}`)) {
     const tenantSlug = hostname.replace(`.${rootDomain}`, "");
+    
     // Ignore 'www' as a tenant slug
     if (tenantSlug === "www") {
       return NextResponse.next();
     }
     
-    // Don't rewrite API routes - they should always go to the main API
-    if (url.pathname.startsWith('/api/') || 
-        url.pathname.startsWith('/_next/') ||
-        url.pathname.startsWith('/media/')) {
-      return NextResponse.next();
-    }
-    
+    // Rewrite the URL to include the tenant slug
     return NextResponse.rewrite(
-      new URL(`/tenants/${tenantSlug}${url.pathname}`, req.url)
+      new URL(`/tenants/${tenantSlug}${pathname}`, req.url)
     );
   }
 
