@@ -39,6 +39,11 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
   );
 
   const [isCopied, setIsCopied] = useState(false);
+  
+  // Add safety check
+  if (!data) {
+    return <ItemViewSkeleton />;
+  }
 
   return (
     <div className="px-4 lg:px-12 py-10">
@@ -70,17 +75,17 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                   href={generateTenantURL(tenantSlug)}
                   className="flex items-center gap-2"
                 >
-                  {data.tenant.image?.url && (
+                  {data.tenant?.image?.url && (
                     <Image
                       src={data.tenant.image.url}
-                      alt={data.tenant.name}
+                      alt={data.tenant?.name || "Store"}
                       width={20}
                       height={20}
                       className="rounded-full border shrink-0 size-[20px]"
                     />
                   )}
                   <p className="text-base underline font-medium">
-                    {data.tenant.name}
+                    {data.tenant?.name || "Store"}
                   </p>
                 </Link>
               </div>
@@ -156,8 +161,8 @@ export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
                 <div className="grid grid-cols-[auto_1fr_auto] gap-3 mt-4">
                   {[5, 4, 3, 2, 1].map((stars) => {
                     // Calculate rating distribution from reviews if available
-                    const reviewsWithThisRating = data.reviews?.filter(r => Math.round(r.rating) === stars).length || 0;
-                    const percentage = data.reviewCount > 0 ? Math.round((reviewsWithThisRating / data.reviewCount) * 100) : 0;
+                    const reviewsWithThisRating = data?.reviews?.filter?.(r => r && Math.round(r.rating) === stars)?.length || 0;
+                    const percentage = (data?.reviewCount || 0) > 0 ? Math.round((reviewsWithThisRating / (data.reviewCount || 1)) * 100) : 0;
                     
                     return (
                       <Fragment key={stars}>
