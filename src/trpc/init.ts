@@ -25,13 +25,19 @@ export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure.use(async ({ next }) => {
   // Get Payload instance for database operations
-  const payload = await getPayload({ config });
-  
-  return next({ 
-    ctx: {
-      db: payload
-    }
-  });
+  try {
+    const payload = await getPayload({ config });
+    console.log("[baseProcedure] Payload instance created successfully");
+    
+    return next({ 
+      ctx: {
+        db: payload
+      }
+    });
+  } catch (error) {
+    console.error("[baseProcedure] Failed to create Payload instance:", error);
+    throw error;
+  }
 });
 
 export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {

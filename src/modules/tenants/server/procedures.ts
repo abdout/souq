@@ -12,23 +12,73 @@ export const tenantsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const tenantsData = await ctx.db.find({
-        collection: "tenants",
-        depth: 1, // "tenant.image" is a type of "Media"
-        where: {
-          slug: {
-            equals: input.slug,
+      console.log("[tenantsRouter.getOne] Looking for tenant with slug:", input.slug);
+      
+      try {
+        const tenantsData = await ctx.db.find({
+          collection: "tenants",
+          depth: 1, // "tenant.image" is a type of "Media"
+          where: {
+            slug: {
+              equals: input.slug,
+            },
           },
-        },
-      });
+        });
 
-      const tenant = tenantsData.docs[0];
+        console.log("[tenantsRouter.getOne] Query result:", {
+          totalDocs: tenantsData.totalDocs,
+          docs: tenantsData.docs.length,
+        });
 
-      if (!tenant) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Tenant not found" });
+        const tenant = tenantsData.docs[0];
+
+        if (!tenant) {
+          console.log("[tenantsRouter.getOne] Tenant not found for slug:", input.slug);
+          
+          // For production, return a default tenant structure to prevent crashes
+          // This allows the site to load even if the tenant doesn't exist
+          if (process.env.NODE_ENV === "production") {
+            console.log("[tenantsRouter.getOne] Returning placeholder tenant for production");
+            return {
+              id: "placeholder",
+              name: "Store",
+              slug: input.slug,
+              businessType: "restaurant" as const,
+              address: "Address not available",
+              coordinates: { lat: 0, lng: 0 },
+              deliveryRadius: 10,
+              minimumOrder: 0,
+              deliveryFee: 0,
+              isActive: false,
+              image: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            } as Tenant & { image: Media | null };
+          }
+          
+          throw new TRPCError({ 
+            code: "NOT_FOUND", 
+            message: `Tenant with slug "${input.slug}" not found` 
+          });
+        }
+
+        console.log("[tenantsRouter.getOne] Found tenant:", tenant.name);
+        return tenant as Tenant & { image: Media | null };
+      } catch (error) {
+        console.error("[tenantsRouter.getOne] Error fetching tenant:", error);
+        
+        // If it's already a TRPC error, re-throw it
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        
+        // Otherwise, wrap it in a TRPC error
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch tenant: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          cause: error,
+        });
       }
-
-      return tenant as Tenant & { image: Media | null };
     }),
 
   // Discover merchants near user location with delivery availability  
