@@ -53,6 +53,11 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || "",
     },
+    // Use camelCase for database fields to match existing schema
+    schemaName: 'public',
+    idType: 'uuid',
+    prodMigrations: undefined,
+    migrationDir: undefined,
   }),
   sharp,
   plugins: [

@@ -3,7 +3,16 @@ import { getPayload } from "payload";
 import config from "@payload-config";
 
 // This endpoint helps seed tenant data for production
+// Allow both GET and POST for easier access
+export async function GET(request: Request) {
+  return handleSeedRequest(request);
+}
+
 export async function POST(request: Request) {
+  return handleSeedRequest(request);
+}
+
+async function handleSeedRequest(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
@@ -57,8 +66,8 @@ export async function POST(request: Request) {
           sunday: { open: "10:00", close: "22:00", closed: false },
         },
         isActive: true,
-        stripeAccountId: "",
-        businessLicense: "",
+        stripeAccountId: "acct_placeholder",
+        businessLicense: "BL-12345",
         stripeDetailsSubmitted: false,
       },
     });

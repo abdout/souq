@@ -24,6 +24,8 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Select the type of business for this merchant",
       },
+      // Map to the existing database column name
+      dbName: "businessType",
     },
     {
       name: "name",
@@ -89,6 +91,7 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Delivery radius in kilometers",
       },
+      dbName: "deliveryRadius",
     },
     {
       name: "minimumOrder",
@@ -98,6 +101,7 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Minimum order value in USD for delivery",
       },
+      dbName: "minimumOrder",
     },
     {
       name: "deliveryFee",
@@ -107,9 +111,11 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Base delivery fee in USD",
       },
+      dbName: "deliveryFee",
     },
     {
       name: "operatingHours",
+      dbName: "operatingHours",
       type: "group",
       fields: [
         {
@@ -195,11 +201,13 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Stripe Account ID associated with your business",
       },
+      dbName: "stripeAccountId",
     },
     {
       name: "isActive",
       type: "checkbox",
       defaultValue: true,
+      dbName: "isActive",
       admin: {
         description: "Whether the business is currently accepting orders",
       },
@@ -210,10 +218,12 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: "Business license number for compliance",
       },
+      dbName: "businessLicense",
     },
     {
       name: "stripeDetailsSubmitted",
       type: "checkbox",
+      dbName: "stripeDetailsSubmitted",
       access: {
         update: ({ req }) => isSuperAdmin(req.user),
       },
