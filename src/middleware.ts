@@ -16,20 +16,28 @@ export const config = {
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const pathname = url.pathname;
+  const hostname = req.headers.get("host") || "";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "";
+  
+  // Debug logging
+  console.log(`[Middleware] Processing request:`, {
+    hostname,
+    pathname,
+    rootDomain,
+    isApiRoute: pathname.startsWith('/api/'),
+    isMediaRoute: pathname.startsWith('/media/'),
+  });
   
   // ALWAYS skip API routes, media files, and Next.js internals
   if (pathname.startsWith('/api/') || 
       pathname.startsWith('/media/')) {
+    console.log(`[Middleware] Skipping rewrite for API/media route: ${pathname}`);
     return NextResponse.next();
   }
-  
-  // Extract the hostname (e.g., "delicious-bites.abdoutgroup.com")
-  const hostname = req.headers.get("host") || "";
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "";
 
   // Handle www.abdoutgroup.com as the main domain, not a tenant
   if (hostname === `www.${rootDomain}` || hostname === rootDomain) {
-    // Let it pass through to the main app routes
+    console.log(`[Middleware] Main domain detected, no rewrite needed`);
     return NextResponse.next();
   }
 
@@ -39,14 +47,18 @@ export default async function middleware(req: NextRequest) {
     
     // Ignore 'www' as a tenant slug
     if (tenantSlug === "www") {
+      console.log(`[Middleware] Skipping www subdomain`);
       return NextResponse.next();
     }
     
     // Rewrite the URL to include the tenant slug
+    const rewriteUrl = `/tenants/${tenantSlug}${pathname}`;
+    console.log(`[Middleware] Rewriting tenant subdomain: ${pathname} -> ${rewriteUrl}`);
     return NextResponse.rewrite(
-      new URL(`/tenants/${tenantSlug}${pathname}`, req.url)
+      new URL(rewriteUrl, req.url)
     );
   }
 
+  console.log(`[Middleware] No matching conditions, passing through`);
   return NextResponse.next();
 }

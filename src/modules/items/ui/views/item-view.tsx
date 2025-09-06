@@ -32,15 +32,26 @@ interface ItemViewProps {
 }
 
 export const ItemView = ({ itemId, tenantSlug }: ItemViewProps) => {
+  console.log(`[ItemView] Rendering with itemId: ${itemId}, tenantSlug: ${tenantSlug}`);
+  
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
+  const { data, error } = useSuspenseQuery(
     trpc.items.getOne.queryOptions({ id: itemId })
   );
 
   const [isCopied, setIsCopied] = useState(false);
   
+  // Log any errors
+  if (error) {
+    console.error(`[ItemView] Error fetching item:`, error);
+  }
+  
+  // Log data received
+  console.log(`[ItemView] Data received:`, data);
+  
   // Add safety check
   if (!data) {
+    console.warn(`[ItemView] No data received, showing skeleton`);
     return <ItemViewSkeleton />;
   }
 

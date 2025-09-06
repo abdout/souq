@@ -27,23 +27,32 @@ function getUrl(host?: string) {
   const base = (() => {
     if (typeof window !== "undefined") {
       // In the browser, use the current origin to ensure proper protocol and domain
-      return window.location.origin;
+      const origin = window.location.origin;
+      console.log(`[TRPC Client] Browser detected, using origin: ${origin}`);
+      return origin;
     }
     // On the server, use the provided host or fall back to environment variable
     if (host) {
       // Ensure the host has a protocol
       const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-      return host.startsWith('http') ? host : `${protocol}://${host}`;
+      const url = host.startsWith('http') ? host : `${protocol}://${host}`;
+      console.log(`[TRPC Client] Server-side with host: ${url}`);
+      return url;
     }
     // Fallback to environment variable
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
       // If no app URL is set, try to construct one
-      return `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000'}`;
+      const fallbackUrl = `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000'}`;
+      console.log(`[TRPC Client] Using fallback URL: ${fallbackUrl}`);
+      return fallbackUrl;
     }
+    console.log(`[TRPC Client] Using app URL from env: ${appUrl}`);
     return appUrl;
   })();
-  return `${base}/api/trpc`;
+  const trpcUrl = `${base}/api/trpc`;
+  console.log(`[TRPC Client] Final TRPC URL: ${trpcUrl}`);
+  return trpcUrl;
 }
 export function TRPCReactProvider(
   props: Readonly<{
