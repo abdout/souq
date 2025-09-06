@@ -22,14 +22,11 @@ export const SearchFilters = () => {
     (category) => category.slug === activeCategory
   );
 
-  const activeCategoryColor = activeCategoryData?.color || DEFAULT_BG_COLOR;
+  const activeCategoryColor = DEFAULT_BG_COLOR; // Categories don't have color property yet
   const activeCategoryName = activeCategoryData?.name || null;
 
   const activeSubcategory = params.subcategory as string | undefined;
-  const activeSubcategoryName =
-    activeCategoryData?.subcategories?.find(
-      (subcategory) => subcategory.slug === activeSubcategory
-    )?.name || null;
+  const activeSubcategoryName = null; // No subcategories implemented yet
 
   return (
     <div

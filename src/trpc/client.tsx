@@ -8,6 +8,7 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "./routers/_app";
+
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 let browserQueryClient: QueryClient;
 function getQueryClient() {
@@ -22,20 +23,32 @@ function getQueryClient() {
   if (!browserQueryClient) browserQueryClient = makeQueryClient();
   return browserQueryClient;
 }
-function getUrl() {
+function getUrl(host?: string) {
   const base = (() => {
     if (typeof window !== "undefined") {
       // In the browser, use the current origin to ensure proper protocol and domain
       return window.location.origin;
     }
-    // On the server, use the configured app URL
-    return process.env.NEXT_PUBLIC_APP_URL || "";
+    // On the server, use the provided host or fall back to environment variable
+    if (host) {
+      // Ensure the host has a protocol
+      const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+      return host.startsWith('http') ? host : `${protocol}://${host}`;
+    }
+    // Fallback to environment variable
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      // If no app URL is set, try to construct one
+      return `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'localhost:3000'}`;
+    }
+    return appUrl;
   })();
   return `${base}/api/trpc`;
 }
 export function TRPCReactProvider(
   props: Readonly<{
     children: React.ReactNode;
+    host?: string; // Optional host for SSR
   }>
 ) {
   // NOTE: Avoid useState when initializing the query client if you don't
@@ -48,7 +61,7 @@ export function TRPCReactProvider(
       links: [
         httpBatchLink({
           transformer: superjson, 
-          url: getUrl(),
+          url: getUrl(props.host),
         }),
       ],
     })

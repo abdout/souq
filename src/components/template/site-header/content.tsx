@@ -14,7 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Image from "next/image";
 import { SiteSidebar } from "../site-sidebar/content";
-import { SearchFilters } from "@/components/search/content";
+import { IntegratedSearchBar } from "@/components/search/integrated-search-bar";
 
 
 const poppins = Poppins({
@@ -86,23 +86,75 @@ export const SiteHeader = () => {
   };
 
   return (
-    <nav className="h-14 flex border-b justify-between font-medium bg-black">
-      <div className="flex items-center gap-4">
-        <Link href="/" className="pl-6 flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="Souq Logo"
-            width={20}
-            height={20}
-            className="filter brightness-0 saturate-100"
-            style={{ filter: 'brightness(0) saturate(100%) invert(67%) sepia(95%) saturate(1234%) hue-rotate(75deg) brightness(95%) contrast(89%)' }}
-          />
-          <span className={cn("text-xl font-bold text-white", poppins.className)}>
+    <nav className="h-16 flex items-center justify-between font-medium bg-[#1A1A1A] border-b border-[#99CC33] px-6">
+      {/* Logo and Search Bar */}
+      <div className="flex items-center gap-6 flex-1">
+        <Link href="/" className="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 16 16">
+            <path fill="#99CC33" fillRule="evenodd" d="M5.174 3h5.652a1.5 1.5 0 0 1 1.49 1.328l.808 7A1.5 1.5 0 0 1 11.634 13H4.366a1.5 1.5 0 0 1-1.49-1.672l.808-7A1.5 1.5 0 0 1 5.174 3m-2.98 1.156A3 3 0 0 1 5.174 1.5h5.652a3 3 0 0 1 2.98 2.656l.808 7a3 3 0 0 1-2.98 3.344H4.366a3 3 0 0 1-2.98-3.344zM5 5.25a.75.75 0 0 1 1.5 0v.25a1.5 1.5 0 1 0 3 0v-.25a.75.75 0 0 1 1.5 0v.25a3 3 0 0 1-6 0z" clipRule="evenodd"/>
+          </svg>
+          <span className={cn("text-xl font-bold text-[#F5F5F5]", poppins.className)}>
             Souq
           </span>
         </Link>
-        <SearchFilters />
+        
+        {/* Integrated Search Bar */}
+        <div className="flex-1 max-w-2xl">
+          <IntegratedSearchBar 
+            defaultValue={searchValue}
+            onChange={setSearchValue}
+          />
+        </div>
       </div>
+      {/* Right side buttons */}
+      <div className="flex items-center gap-4">
+        {session.data?.user ? (
+          <>
+            <Button
+              asChild
+              className="hidden lg:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium"
+            >
+              <Link href="/admin">Dashboard</Link>
+            </Button>
+            <Button
+              onClick={handleLogout}
+              disabled={isPending}
+              className="hidden lg:flex px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-500 transition-colors text-sm font-medium"
+            >
+              {isPending ? "Logging out..." : "Logout"}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              asChild
+              className="hidden xl:flex px-6 py-2 rounded-md bg-white text-[#1A1A1A] hover:bg-[#99CC33] transition-colors text-sm font-medium"
+            >
+              <Link prefetch href="/sign-in">
+                Log in
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="px-6 py-2 rounded-md bg-[#99CC33] text-[#1A1A1A] hover:bg-[#87E64B] transition-colors text-sm font-medium"
+            >
+              <Link prefetch href="/sign-up">
+                Get unlimited downloads
+              </Link>
+            </Button>
+          </>
+        )}
+        
+        {/* Hamburger Menu */}
+        <Button
+          variant="ghost"
+          className="p-2 text-white hover:bg-[#333333] rounded-md"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <MenuIcon className="h-5 w-5" />
+        </Button>
+      </div>
+
       <SiteSidebar
         items={navbarItems}
         open={isSidebarOpen}
@@ -111,64 +163,6 @@ export const SiteHeader = () => {
         onLogout={handleLogout}
         isLoggingOut={isPending}
       />
-      <div className="items-center gap-4 hidden xl:flex">
-        {navbarItems.map((item) => (
-          <NavbarItem
-            key={item.href}
-            href={item.href}
-            isActive={pathname == item.href}
-          >
-            {item.children}
-          </NavbarItem>
-        ))}
-      </div>
-      {session.data?.user ? (
-        <div className="hidden lg:flex">
-          <Button
-            asChild
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black hover:bg-[#87E64B] hover:text-black transition-colors text-lg"
-          >
-            <Link href="/admin">Dashboard</Link>
-          </Button>
-          <Button
-            onClick={handleLogout}
-            disabled={isPending}
-            className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-red-600 text-white hover:bg-red-500 transition-colors text-lg"
-          >
-            {isPending ? "Logging out..." : "Logout"}
-          </Button>
-        </div>
-      ) : (
-        <div className="">
-          <Button
-            asChild
-            variant="secondary"
-            className="hidden xl:flex border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white text-black
-                  hover:bg-[#87E64B] transition-colors text-lg"
-          >
-            <Link prefetch href="/sign-in">
-              Log in
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className="h-10 my-2 rounded-md bg-[#87E64B] hover:bg-[#87E64B]/90 transition-colors text-lg px-6 "
-          >
-            <Link prefetch href="/sign-up">
-              Add your marketplace
-            </Link>
-          </Button>
-        </div>
-      )}
-      <div className="flex xl:hidden items-center justify-center">
-        <Button
-          variant="ghost"
-          className="size-14 border-transparent bg-black text-white hover:bg-neutral-900"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <MenuIcon className="size-6" />
-        </Button>
-      </div>
     </nav>
   );
 };

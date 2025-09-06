@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Analytics } from "@vercel/analytics/next";
+import { headers } from "next/headers";
 
 
 export const metadata: Metadata = {
@@ -15,11 +16,13 @@ export const metadata: Metadata = {
  
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("host") || undefined;
   return (
     <html lang="en">
       <body
@@ -31,7 +34,7 @@ export default function RootLayout({
       >
         <NuqsAdapter>
           <Analytics />
-          <TRPCReactProvider>
+          <TRPCReactProvider host={host}>
             {children}
             <Toaster />
           </TRPCReactProvider>

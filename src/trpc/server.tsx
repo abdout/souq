@@ -4,6 +4,8 @@ import { cache } from "react";
 import { createTRPCContext } from "./init";
 import { makeQueryClient } from "./query-client";
 import { appRouter } from "./routers/_app";
+import { getPayload } from "payload";
+import config from "@payload-config";
 
 // IMPORTANT: Create a stable getter for the query client that
 //           will return the same client during the same request.
@@ -14,4 +16,7 @@ export const trpc = createTRPCOptionsProxy({
   queryClient: getQueryClient,
 });
 
-export const caller = appRouter.createCaller({});
+export const caller = appRouter.createCaller(async () => {
+  const payload = await getPayload({ config });
+  return { db: payload };
+});
